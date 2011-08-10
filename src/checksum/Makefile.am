@@ -19,13 +19,21 @@ AM_CFLAGS = -rdynamic
 
 libs = $(top_builddir)/src/libstrongswan/.libs/libstrongswan.so
 
+plugins =
+plugin_list = \
+	$(foreach plugin,$(1), \
+		$(subst %,$(subst -,_,$(strip $(plugin))), \
+			$(2)/%/.libs/libstrongswan-$(plugin).so))
+
 if !MONOLITHIC
+  plugins += $(call plugin_list,${s_plugins},${top_builddir}/src/libstrongswan/plugins)
   AM_CFLAGS += -DS_PLUGINS=\""${s_plugins}\"" -DS_PATH=\""${top_builddir}/src/libstrongswan/plugins\""
 endif
 
 if USE_LIBHYDRA
   libs += $(top_builddir)/src/libhydra/.libs/libhydra.so
 if !MONOLITHIC
+  plugins += $(call plugin_list,${h_plugins},${top_builddir}/src/libhydra/plugins)
   AM_CFLAGS += -DH_PLUGINS=\""${h_plugins}\"" -DH_PATH=\""${top_builddir}/src/libhydra/plugins\""
 endif
 endif
@@ -34,12 +42,14 @@ if USE_CHARON
   libs += $(top_builddir)/src/libcharon/.libs/libcharon.so
   libs += $(top_builddir)/src/charon/.libs/charon
 if !MONOLITHIC
+  plugins += $(call plugin_list,${c_plugins},${top_builddir}/src/libcharon/plugins)
   AM_CFLAGS += -DC_PLUGINS=\""${c_plugins}\"" -DC_PATH=\""${top_builddir}/src/libcharon/plugins\""
 endif
 endif
 
 if USE_PLUTO
   libs += $(top_builddir)/src/pluto/.libs/pluto
+  plugins += $(call plugin_list,${p_plugins},${top_builddir}/src/pluto/plugins)
   AM_CFLAGS += -DP_PLUGINS=\""${p_plugins}\"" -DP_PATH=\""${top_builddir}/src/pluto/plugins\""
 endif
 
@@ -53,5 +63,5 @@ if USE_ATTR_SQL
   libs += $(top_builddir)/src/libhydra/plugins/attr_sql/.libs/pool
 endif
 
-checksum.c : checksum_builder $(libs)
+checksum.c : checksum_builder $(libs) $(plugins)
 		./checksum_builder $(libs) > checksum.c
