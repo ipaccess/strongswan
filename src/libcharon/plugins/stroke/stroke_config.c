@@ -386,15 +386,19 @@ static auth_cfg_t *build_auth_cfg(private_stroke_config_t *this,
 				this->ca->check_for_hash_and_url(this->ca, certificate);
 			}
 			cfg->add(cfg, AUTH_RULE_SUBJECT_CERT, certificate);
-			if (identity->get_type(identity) == ID_ANY ||
-				!certificate->has_subject(certificate, identity))
+			if (lib->settings->get_bool(lib->settings,
+										"charon.cert_id_binding", TRUE))
 			{
-				DBG1(DBG_CFG, "  id '%Y' not confirmed by certificate, "
-					 "defaulting to '%Y'", identity,
-					 certificate->get_subject(certificate));
-				identity->destroy(identity);
-				identity = certificate->get_subject(certificate);
-				identity = identity->clone(identity);
+				if (identity->get_type(identity) == ID_ANY ||
+					!certificate->has_subject(certificate, identity))
+				{
+					DBG1(DBG_CFG, "  id '%Y' not confirmed by certificate, "
+						 "defaulting to '%Y'", identity,
+						 certificate->get_subject(certificate));
+					identity->destroy(identity);
+					identity = certificate->get_subject(certificate);
+					identity = identity->clone(identity);
+				}
 			}
 		}
 	}
