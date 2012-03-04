@@ -42,6 +42,8 @@ enum key_type_t {
 	KEY_ECDSA = 2,
 	/** DSA */
 	KEY_DSA   = 3,
+	/** RSA key share */
+	KEY_RSA_SHARE = 4,
 	/** ElGamal, ... */
 };
 

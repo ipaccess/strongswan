@@ -141,6 +141,10 @@ enum builder_part_t {
 	BUILD_RSA_COEFF,
 	/** generate (p) and (q) as safe primes */
 	BUILD_SAFE_PRIMES,
+	/** threshold for a distributed private key */
+	BUILD_THRESHOLD,
+	/** designates location where the private key polynomial is sampled */
+	BUILD_SHARE,
 	/** end of variable argument builder list */
 	BUILD_END,
 };

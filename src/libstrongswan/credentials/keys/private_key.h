@@ -74,6 +74,14 @@ struct private_key_t {
 	public_key_t* (*get_public_key)(private_key_t *this);
 
 	/**
+	 * Get a private key share.
+	 *
+	 * @param share		location where the private key polynomial is sampled
+	 * @return			public key
+	 */
+	private_key_t* (*get_key_share)(private_key_t *this, u_int share);
+
+	/**
 	 * Check if two private keys are equal.
 	 *
 	 * @param other		other private key

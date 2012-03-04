@@ -220,6 +220,12 @@ METHOD(private_key_t, get_public_key, public_key_t*,
 	return key;
 }
 
+METHOD(private_key_t, get_key_share, private_key_t*,
+	private_openssl_rsa_private_key_t *this, u_int share)
+{
+	return NULL;
+}
+
 METHOD(private_key_t, get_fingerprint, bool,
 	private_openssl_rsa_private_key_t *this, cred_encoding_type_t type,
 	chunk_t *fingerprint)
@@ -300,6 +306,7 @@ static private_openssl_rsa_private_key_t *create_empty()
 				.decrypt = _decrypt,
 				.get_keysize = _get_keysize,
 				.get_public_key = _get_public_key,
+				.get_key_share = _get_key_share,
 				.equals = private_key_equals,
 				.belongs_to = private_key_belongs_to,
 				.get_fingerprint = _get_fingerprint,

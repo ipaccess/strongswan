@@ -138,6 +138,10 @@ enum cred_encoding_part_t {
 	CRED_PART_PKCS10_ASN1_DER,
 	/** a PGP encoded certificate */
 	CRED_PART_PGP_CERT,
+	/** a private key threshold */
+	CRED_PART_THRESHOLD,
+	/** designates the location where the share was sampled */
+	CRED_PART_SHARE,
 
 	CRED_PART_END,
 };

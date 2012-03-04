@@ -125,7 +125,7 @@ static void __attribute__ ((constructor))reg()
 {
 	command_register((command_t) {
 		gen, 'g', "gen", "generate a new private key",
-		{"[--type rsa|ecdsa] [--size bits] [--safe-primes[--outform der|pem|pgp]"},
+		{"[--type rsa|ecdsa] [--size bits] [--safe-primes] [--outform der|pem|pgp]"},
 		{
 			{"help",		'h', 0, "show usage information"},
 			{"type",		't', 1, "type of key, default: rsa"},

@@ -21,7 +21,8 @@ ENUM(key_type_names, KEY_ANY, KEY_DSA,
 	"ANY",
 	"RSA",
 	"ECDSA",
-	"DSA"
+	"DSA",
+	"RSA SHARE",
 );
 
 ENUM(signature_scheme_names, SIGN_UNKNOWN, SIGN_ECDSA_521,
