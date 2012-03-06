@@ -92,7 +92,7 @@ chunk_t	gmp_emsa_pkcs1(hash_algorithm_t hash_algorithm, chunk_t data,
 	if (data.len > k - 3)
 	{
 		free(digestInfo.ptr);
-		DBG1(DBG_LIB, "unable to sign %d bytes using a %dbit key", data.len,
+		DBG1(DBG_LIB, "unable to sign %d bytes using a %d bit key", data.len,
 			 keysize);
 		return chunk_empty;
 	}

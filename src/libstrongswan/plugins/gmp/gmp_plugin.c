@@ -18,6 +18,7 @@
 #include <library.h>
 #include "gmp_diffie_hellman.h"
 #include "gmp_rsa_private_key.h"
+#include "gmp_rsa_private_key_share.h"
 #include "gmp_rsa_public_key.h"
 
 typedef struct private_gmp_plugin_t private_gmp_plugin_t;
@@ -73,6 +74,8 @@ METHOD(plugin_t, get_features, int,
 			/* private/public keys */
 		PLUGIN_REGISTER(PRIVKEY, gmp_rsa_private_key_load, TRUE),
 			PLUGIN_PROVIDE(PRIVKEY, KEY_RSA),
+		PLUGIN_REGISTER(PRIVKEY, gmp_rsa_private_key_share_load, TRUE),
+			PLUGIN_PROVIDE(PRIVKEY, KEY_RSA_SHARE),
 		PLUGIN_REGISTER(PRIVKEY_GEN, gmp_rsa_private_key_gen, FALSE),
 			PLUGIN_PROVIDE(PRIVKEY_GEN, KEY_RSA),
 				PLUGIN_DEPENDS(RNG, RNG_TRUE),
