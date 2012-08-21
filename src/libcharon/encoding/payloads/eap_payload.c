@@ -329,7 +329,8 @@ static void write_type(bio_writer_t *writer, eap_type_t type, u_int32_t vendor,
 /*
  * Described in header
  */
-eap_payload_t *eap_payload_create_nak(u_int8_t identifier, bool expanded)
+eap_payload_t *eap_payload_create_nak(u_int8_t identifier, eap_type_t type,
+									  u_int32_t vendor, bool expanded)
 {
 	enumerator_t *enumerator;
 	eap_type_t reg_type;
@@ -351,6 +352,11 @@ eap_payload_t *eap_payload_create_nak(u_int8_t identifier, bool expanded)
 	{
 		if (!reg_vendor && (reg_type < 4 || reg_type > 253) && reg_type != 255)
 		{	/* filter invalid types (e.g. EAP-Identity) */
+			continue;
+		}
+		if ((type && type != reg_type) ||
+			(type && vendor && vendor != reg_vendor))
+		{	/* the selected type is only sent if supported */
 			continue;
 		}
 		if (expanded || !reg_vendor)
