@@ -17,6 +17,7 @@ crypto/crypters/crypter.c crypto/crypters/crypter.h \
 crypto/hashers/hasher.h crypto/hashers/hasher.c \
 crypto/pkcs9.c crypto/pkcs9.h \
 crypto/proposal/proposal_keywords.c crypto/proposal/proposal_keywords.h \
+crypto/proposal/proposal_keywords_static.c crypto/proposal/proposal_keywords_static.h \
 crypto/prfs/prf.c crypto/prfs/prf.h \
 crypto/rngs/rng.c crypto/rngs/rng.h \
 crypto/prf_plus.h crypto/prf_plus.c \

@@ -15,6 +15,7 @@ crypto/crypters/crypter.c crypto/crypters/crypter.h \
 crypto/hashers/hasher.h crypto/hashers/hasher.c \
 crypto/pkcs9.c crypto/pkcs9.h \
 crypto/proposal/proposal_keywords.c crypto/proposal/proposal_keywords.h \
+crypto/proposal/proposal_keywords_static.c crypto/proposal/proposal_keywords_static.h \
 crypto/prfs/prf.c crypto/prfs/prf.h \
 crypto/rngs/rng.c crypto/rngs/rng.h \
 crypto/prf_plus.h crypto/prf_plus.c \
@@ -106,16 +107,16 @@ endif
 
 EXTRA_DIST = \
 asn1/oid.txt asn1/oid.pl \
-crypto/proposal/proposal_keywords.txt \
+crypto/proposal/proposal_keywords_static.txt \
 Android.mk AndroidConfigLocal.h
 
 BUILT_SOURCES = \
 $(srcdir)/asn1/oid.c $(srcdir)/asn1/oid.h \
-$(srcdir)/crypto/proposal/proposal_keywords.c
+$(srcdir)/crypto/proposal/proposal_keywords_static.c
 
 MAINTAINERCLEANFILES = \
 $(srcdir)/asn1/oid.c $(srcdir)/asn1/oid.h \
-$(srcdir)/crypto/proposal/proposal_keywords.c
+$(srcdir)/crypto/proposal/proposal_keywords_static.c
 
 $(srcdir)/asn1/oid.c :	$(srcdir)/asn1/oid.pl $(srcdir)/asn1/oid.txt
 		(cd $(srcdir)/asn1/ && $(PERL) oid.pl)
@@ -123,10 +124,10 @@ $(srcdir)/asn1/oid.c :	$(srcdir)/asn1/oid.pl $(srcdir)/asn1/oid.txt
 $(srcdir)/asn1/oid.h :	$(srcdir)/asn1/oid.pl $(srcdir)/asn1/oid.txt
 		(cd $(srcdir)/asn1/ && $(PERL) oid.pl)
 
-$(srcdir)/crypto/proposal/proposal_keywords.c:	$(srcdir)/crypto/proposal/proposal_keywords.txt \
-												$(srcdir)/crypto/proposal/proposal_keywords.h
-		$(GPERF) -N proposal_get_token -m 10 -C -G -c -t -D < \
-												$(srcdir)/crypto/proposal/proposal_keywords.txt > $@
+$(srcdir)/crypto/proposal/proposal_keywords_static.c:	$(srcdir)/crypto/proposal/proposal_keywords_static.txt \
+														$(srcdir)/crypto/proposal/proposal_keywords_static.h
+		$(GPERF) -N proposal_get_token_static -m 10 -C -G -c -t -D < \
+												$(srcdir)/crypto/proposal/proposal_keywords_static.txt > $@
 
 
 # build plugins with their own Makefile
