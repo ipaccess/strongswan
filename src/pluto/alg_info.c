@@ -29,7 +29,6 @@
 #include <pfkeyv2.h>
 
 #include <utils.h>
-#include <utils/lexparser.h>
 #include <crypto/diffie_hellman.h>
 #include <crypto/transform.h>
 #include <crypto/proposal/proposal_keywords.h>
@@ -281,11 +280,11 @@ in_loop:
 	}
 }
 
-static status_t alg_info_add(chunk_t alg, unsigned protoid,
+static status_t alg_info_add(char *alg, unsigned protoid,
 							 int *ealg, size_t *ealg_keysize,
 							 int *aalg, size_t *aalg_keysize, int *dh_group)
 {
-	const proposal_token_t *token = proposal_get_token(alg.ptr, alg.len);
+	const proposal_token_t *token = proposal_get_token(alg);
 
 	if (token == NULL)
 	{
@@ -351,33 +350,24 @@ static status_t alg_info_parse_str(struct alg_info *alg_info, char *alg_str)
 	}
 	while ((single = strsep(&alg_str, ",")))
 	{
-		chunk_t string = { (u_char *)single, strlen(single) };
+		enumerator_t *enumerator;
+		char *alg;
 		int ealg = 0;
 		int aalg = 0;
 		int dh_group = 0;
 		size_t ealg_keysize = 0;
 		size_t aalg_keysize = 0;
 
-		eat_whitespace(&string);
-
-		if (string.len > 0)
+		/* get all tokens, separated by '-' */
+		enumerator = enumerator_create_token(single, "-", " ");
+		while (enumerator->enumerate(enumerator, &alg))
 		{
-			chunk_t alg;
-
-			/* get all token, separated by '-' */
-			while (extract_token(&alg, '-', &string))
-			{
-				status |= alg_info_add(alg, alg_info->alg_info_protoid,
-									   &ealg, &ealg_keysize,
-									   &aalg, &aalg_keysize, &dh_group);
-			}
-			if (string.len)
-			{
-				status |= alg_info_add(string, alg_info->alg_info_protoid,
-									   &ealg, &ealg_keysize,
-									   &aalg, &aalg_keysize, &dh_group);
-			}
+			status |= alg_info_add(alg, alg_info->alg_info_protoid,
+								   &ealg, &ealg_keysize, &aalg, &aalg_keysize,
+								   &dh_group);
 		}
+		enumerator->destroy(enumerator);
+
 		if (status == SUCCESS)
 
 		{
@@ -427,7 +417,7 @@ struct alg_info_esp *alg_info_esp_create_from_str(char *alg_str)
 		{
 			const proposal_token_t *token;
 
-			token = proposal_get_token(pfs_name, strlen(pfs_name));
+			token = proposal_get_token(pfs_name);
 			if (token == NULL || token->type != DIFFIE_HELLMAN_GROUP)
 			{
 				/* Bomb if pfsgroup not found */

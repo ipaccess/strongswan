@@ -691,7 +691,7 @@ int main(int argc, char **argv)
 		{
 			const proposal_token_t *token;
 
-			token = proposal_get_token(optarg, strlen(optarg));
+			token = proposal_get_token(optarg);
 			if (token == NULL || token->type != ENCRYPTION_ALGORITHM)
 			{
 				usage("invalid algorithm specified");
