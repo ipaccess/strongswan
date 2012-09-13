@@ -75,6 +75,7 @@
 #include "processing/processor.h"
 #include "processing/scheduler.h"
 #include "crypto/crypto_factory.h"
+#include "crypto/proposal/proposal_keywords.h"
 #include "fetcher/fetcher_manager.h"
 #include "database/database_factory.h"
 #include "credentials/credential_factory.h"
@@ -111,6 +112,11 @@ struct library_t {
 	 * Printf hook registering facility
 	 */
 	printf_hook_t *printf_hook;
+
+	/**
+	 * Proposal keywords registry
+	 */
+	proposal_keywords_t *proposal;
 
 	/**
 	 * crypto algorithm registry and factory

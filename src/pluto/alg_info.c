@@ -31,7 +31,6 @@
 #include <utils.h>
 #include <crypto/diffie_hellman.h>
 #include <crypto/transform.h>
-#include <crypto/proposal/proposal_keywords.h>
 
 
 #include "alg_info.h"
@@ -284,8 +283,9 @@ static status_t alg_info_add(char *alg, unsigned protoid,
 							 int *ealg, size_t *ealg_keysize,
 							 int *aalg, size_t *aalg_keysize, int *dh_group)
 {
-	const proposal_token_t *token = proposal_get_token(alg);
+	const proposal_token_t *token;
 
+	token = lib->proposal->get_token(lib->proposal, alg);
 	if (token == NULL)
 	{
 		return FAILED;
@@ -417,7 +417,7 @@ struct alg_info_esp *alg_info_esp_create_from_str(char *alg_str)
 		{
 			const proposal_token_t *token;
 
-			token = proposal_get_token(pfs_name);
+			token = lib->proposal->get_token(lib->proposal, pfs_name);
 			if (token == NULL || token->type != DIFFIE_HELLMAN_GROUP)
 			{
 				/* Bomb if pfsgroup not found */

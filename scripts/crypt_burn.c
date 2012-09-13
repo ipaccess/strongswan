@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <library.h>
-#include <crypto/proposal/proposal_keywords.h>
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +32,7 @@ int main(int argc, char *argv[])
 		limit = atoi(argv[2]);
 	}
 
-	token = proposal_get_token(argv[1]);
+	token = lib->proposal->get_token(lib->proposal, argv[1]);
 	if (!token)
 	{
 		fprintf(stderr, "algorithm '%s' unknown!\n", argv[1]);
