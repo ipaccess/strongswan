@@ -160,6 +160,16 @@ static bool handle_certs(private_pkcs11_plugin_t *this,
 	}
 	return TRUE;
 }
+
+METHOD(plugin_t, reload, bool,
+	private_pkcs11_plugin_t *this)
+{
+	/* reload certificates from tokens */
+	DBG1(DBG_CFG, "reloading certificates from PKCS#11 tokens");
+	handle_certs(this, NULL, FALSE, NULL);
+	return handle_certs(this, NULL, TRUE, NULL);
+}
+
 /**
  * Add a set of features
  */
@@ -292,6 +302,7 @@ plugin_t *pkcs11_plugin_create()
 			.plugin = {
 				.get_name = _get_name,
 				.get_features = _get_features,
+				.reload = _reload,
 				.destroy = _destroy,
 			},
 		},
