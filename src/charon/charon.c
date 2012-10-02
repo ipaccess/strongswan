@@ -113,6 +113,8 @@ static void run()
 					 "configuration");
 				if (lib->settings->load_files(lib->settings, NULL, FALSE))
 				{
+					charon->file_loggers->invoke_offset(charon->file_loggers,
+											offsetof(file_logger_t, reopen));
 					lib->plugins->reload(lib->plugins, NULL);
 				}
 				else
@@ -295,8 +297,7 @@ static void initialize_loggers(bool use_stderr, level_t levels[])
 	int loggers_defined = 0;
 	debug_t group;
 	level_t  def;
-	bool append, ike_name;
-	FILE *file;
+	bool ike_name;
 
 	/* setup sysloggers */
 	identifier = lib->settings->get_str(lib->settings,
@@ -345,36 +346,16 @@ static void initialize_loggers(bool use_stderr, level_t levels[])
 	while (enumerator->enumerate(enumerator, &filename))
 	{
 		loggers_defined++;
-		if (streq(filename, "stderr"))
-		{
-			file = stderr;
-		}
-		else if (streq(filename, "stdout"))
-		{
-			file = stdout;
-		}
-		else
-		{
-			append = lib->settings->get_bool(lib->settings,
-									"charon.filelog.%s.append", TRUE, filename);
-			file = fopen(filename, append ? "a" : "w");
-			if (file == NULL)
-			{
-				DBG1(DBG_DMN, "opening file %s for logging failed: %s",
-					 filename, strerror(errno));
-				continue;
-			}
-			if (lib->settings->get_bool(lib->settings,
-							"charon.filelog.%s.flush_line", FALSE, filename))
-			{
-				setlinebuf(file);
-			}
-		}
-		file_logger = file_logger_create(file,
+
+		file_logger = file_logger_create(filename,
 						lib->settings->get_str(lib->settings,
 							"charon.filelog.%s.time_format", NULL, filename),
 						lib->settings->get_bool(lib->settings,
-							"charon.filelog.%s.ike_name", FALSE, filename));
+							"charon.filelog.%s.ike_name", FALSE, filename),
+						lib->settings->get_bool(lib->settings,
+							"charon.filelog.%s.flush_line", FALSE, filename),
+						lib->settings->get_bool(lib->settings,
+							"charon.filelog.%s.append", TRUE, filename));
 		def = lib->settings->get_int(lib->settings,
 									 "charon.filelog.%s.default", 1, filename);
 		for (group = 0; group < DBG_MAX; group++)
@@ -394,7 +375,7 @@ static void initialize_loggers(bool use_stderr, level_t levels[])
 	if (!loggers_defined)
 	{
 		/* set up default stdout file_logger */
-		file_logger = file_logger_create(stdout, NULL, FALSE);
+		file_logger = file_logger_create("stdout", NULL, FALSE, FALSE, FALSE);
 		charon->bus->add_listener(charon->bus, &file_logger->listener);
 		charon->file_loggers->insert_last(charon->file_loggers, file_logger);
 		/* set up default daemon sys_logger */

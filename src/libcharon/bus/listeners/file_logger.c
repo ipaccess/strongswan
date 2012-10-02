@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2012 Tobias Brunner
  * Copyright (C) 2006 Martin Willi
  * Hochschule fuer Technik Rapperswil
  *
@@ -16,9 +17,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "file_logger.h"
 
+#include <daemon.h>
+#include <threading/mutex.h>
 
 typedef struct private_file_logger_t private_file_logger_t;
 
@@ -33,7 +39,12 @@ struct private_file_logger_t {
 	file_logger_t public;
 
 	/**
-	 * output file
+	 * File name of the target
+	 */
+	char *filename;
+
+	/**
+	 * Current output file
 	 */
 	FILE *out;
 
@@ -51,6 +62,21 @@ struct private_file_logger_t {
 	 * Print the name/# of the IKE_SA?
 	 */
 	bool ike_name;
+
+	/**
+	 * Flush buffers after every line
+	 */
+	bool flush_line;
+
+	/**
+	 * Append/Overwrite existing file
+	 */
+	bool append;
+
+	/**
+	 * Mutex to safely update file stream
+	 */
+	mutex_t *mutex;
 };
 
 METHOD(listener_t, log_, bool,
@@ -91,6 +117,12 @@ METHOD(listener_t, log_, bool,
 		/* write in memory buffer first */
 		vsnprintf(buffer, sizeof(buffer), format, args);
 
+		this->mutex->lock(this->mutex);
+		if (!this->out)
+		{	/* file is not open, stay registered anyway */
+			this->mutex->unlock(this->mutex);
+			return TRUE;
+		}
 		/* prepend a prefix in front of every line */
 		while (current)
 		{
@@ -111,6 +143,7 @@ METHOD(listener_t, log_, bool,
 			}
 			current = next;
 		}
+		this->mutex->unlock(this->mutex);
 	}
 	/* always stay registered */
 	return TRUE;
@@ -132,20 +165,66 @@ METHOD(file_logger_t, set_level, void,
 	}
 }
 
+/**
+ * Close the current file, if any
+ */
+static void close_file(private_file_logger_t *this)
+{
+	if (this->out && this->out != stdout && this->out != stderr)
+	{
+		fclose(this->out);
+		this->out = NULL;
+	}
+}
+
+METHOD(file_logger_t, reopen, void,
+	private_file_logger_t *this)
+{
+	FILE *file;
+
+	if (streq(this->filename, "stderr"))
+	{
+		file = stderr;
+	}
+	else if (streq(this->filename, "stdout"))
+	{
+		file = stdout;
+	}
+	else
+	{
+		file = fopen(this->filename, this->append ? "a" : "w");
+		if (file == NULL)
+		{
+			DBG1(DBG_DMN, "opening file %s for logging failed: %s",
+				 this->filename, strerror(errno));
+			return;
+		}
+		if (this->flush_line)
+		{
+			setlinebuf(file);
+		}
+	}
+	this->mutex->lock(this->mutex);
+	close_file(this);
+	this->out = file;
+	this->mutex->unlock(this->mutex);
+}
+
 METHOD(file_logger_t, destroy, void,
 	   private_file_logger_t *this)
 {
-	if (this->out != stdout && this->out != stderr)
-	{
-		fclose(this->out);
-	}
+	close_file(this);
+	this->mutex->destroy(this->mutex);
+	free(this->filename);
+	free(this->time_format);
 	free(this);
 }
 
 /*
  * Described in header.
  */
-file_logger_t *file_logger_create(FILE *out, char *time_format, bool ike_name)
+file_logger_t *file_logger_create(char *filename, char *time_format,
+								  bool ike_name, bool flush_line, bool append)
 {
 	private_file_logger_t *this;
 
@@ -155,14 +234,20 @@ file_logger_t *file_logger_create(FILE *out, char *time_format, bool ike_name)
 				.log = _log_,
 			},
 			.set_level = _set_level,
+			.reopen = _reopen,
 			.destroy = _destroy,
 		},
-		.out = out,
-		.time_format = time_format,
+		.filename = strdup(filename),
+		.time_format = strdupnull(time_format),
 		.ike_name = ike_name,
+		.flush_line = flush_line,
+		.append = append,
+		.mutex = mutex_create(MUTEX_TYPE_DEFAULT),
 	);
 
 	set_level(this, DBG_ANY, LEVEL_SILENT);
+
+	reopen(this);
 
 	return &this->public;
 }

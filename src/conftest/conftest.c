@@ -374,7 +374,6 @@ static void load_loggers(file_logger_t *logger)
 {
 	enumerator_t *enumerator;
 	char *section;
-	FILE *file;
 
 	load_log_levels(logger, "stdout");
 
@@ -383,14 +382,7 @@ static void load_loggers(file_logger_t *logger)
 	{
 		if (!streq(section, "stdout"))
 		{
-			file = fopen(section, "w");
-			if (file == NULL)
-			{
-				fprintf(stderr, "opening file %s for logging failed: %s",
-						section, strerror(errno));
-				continue;
-			}
-			logger = file_logger_create(file, NULL, FALSE);
+			logger = file_logger_create(section, NULL, FALSE, FALSE, FALSE);
 			load_log_levels(logger, section);
 			charon->bus->add_listener(charon->bus, &logger->listener);
 			charon->file_loggers->insert_last(charon->file_loggers, logger);
@@ -434,7 +426,7 @@ int main(int argc, char *argv[])
 		.creds = mem_cred_create(),
 	);
 
-	logger = file_logger_create(stdout, NULL, FALSE);
+	logger = file_logger_create("stdout", NULL, FALSE, FALSE, FALSE);
 	logger->set_level(logger, DBG_ANY, LEVEL_CTRL);
 	charon->bus->add_listener(charon->bus, &logger->listener);
 	charon->file_loggers->insert_last(charon->file_loggers, logger);
