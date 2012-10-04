@@ -20,6 +20,7 @@
 extern int starter_whack_add_conn(starter_conn_t *conn);
 extern int starter_whack_del_conn(starter_conn_t *conn);
 extern int starter_whack_route_conn(starter_conn_t *conn);
+extern int starter_whack_unroute_conn(starter_conn_t *conn);
 extern int starter_whack_initiate_conn(starter_conn_t *conn);
 extern int starter_whack_listen(void);
 extern int starter_whack_shutdown(void);

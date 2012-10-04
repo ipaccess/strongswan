@@ -513,10 +513,20 @@ int main (int argc, char **argv)
 					{
 						if (starter_charon_pid())
 						{
+							if (conn->startup == STARTUP_ROUTE &&
+								conn->keyexchange != KEY_EXCHANGE_IKEV1)
+							{
+								starter_stroke_unroute_conn(conn);
+							}
 							starter_stroke_del_conn(conn);
 						}
 						if (starter_pluto_pid())
 						{
+							if (conn->startup == STARTUP_ROUTE &&
+								conn->keyexchange == KEY_EXCHANGE_IKEV1)
+							{
+								starter_whack_unroute_conn(conn);
+							}
 							starter_whack_del_conn(conn);
 						}
 						conn->state = STATE_TO_ADD;
@@ -597,10 +607,20 @@ int main (int argc, char **argv)
 						{
 							if (starter_charon_pid())
 							{
+								if (conn->startup == STARTUP_ROUTE &&
+									conn->keyexchange != KEY_EXCHANGE_IKEV1)
+								{
+									starter_stroke_unroute_conn(conn);
+								}
 								starter_stroke_del_conn(conn);
 							}
 							if (starter_pluto_pid())
 							{
+								if (conn->startup == STARTUP_ROUTE &&
+									conn->keyexchange == KEY_EXCHANGE_IKEV1)
+								{
+									starter_whack_unroute_conn(conn);
+								}
 								starter_whack_del_conn(conn);
 							}
 						}

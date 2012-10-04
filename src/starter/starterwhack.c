@@ -358,6 +358,17 @@ int starter_whack_route_conn(starter_conn_t *conn)
 	return send_whack_msg(&msg);
 }
 
+int starter_whack_unroute_conn(starter_conn_t *conn)
+{
+	char name[32];
+	whack_message_t msg;
+
+	init_whack_msg(&msg);
+	msg.whack_unroute = TRUE;
+	msg.name = connection_name(conn, name, sizeof(name));
+	return send_whack_msg(&msg);
+}
+
 int starter_whack_initiate_conn(starter_conn_t *conn)
 {
 	char name[32];
