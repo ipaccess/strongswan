@@ -90,6 +90,11 @@ struct private_gmp_rsa_private_key_t {
 	mpz_t coeff;
 
 	/**
+	 * Optional verification key (threshold > 1).
+	 */
+	mpz_t v;
+
+	/**
 	 * Secret sharing threshold.
 	 */
 	u_int threshold;
@@ -395,6 +400,7 @@ METHOD(private_key_t, get_key_share, private_key_t*,
 	
 	return key;
 }
+
 METHOD(private_key_t, get_encoding, bool,
 	private_gmp_rsa_private_key_t *this, cred_encoding_type_t type,
 	chunk_t *encoding)
@@ -466,6 +472,7 @@ METHOD(private_key_t, destroy, void,
 
 		mpz_clear(this->n);
 		mpz_clear(this->e);
+		mpz_clear(this->v);
 
 		gmp_mpz_clear_sensitive(this->p);
 		gmp_mpz_clear_sensitive(this->q);
@@ -621,7 +628,7 @@ static private_gmp_rsa_private_key_t *gmp_rsa_private_key_create_empty(void)
  */
 gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 {
-	mpz_t p, q, n, e, d, exp1, exp2, coeff, m, q1, t;
+	mpz_t p, q, n, e, d, exp1, exp2, coeff, m, q1, t, v;
 	private_gmp_rsa_private_key_t *this;
 	u_int key_size = 0, threshold = 1;
 	bool safe_prime = FALSE;
@@ -680,12 +687,12 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 	mpz_mul(n, p, q);						/* n = p*q */
 	mpz_init_set_ui(e, PUBLIC_EXPONENT);	/* assign public exponent */
 	mpz_init_set(m, p);						/* m = p */
-	mpz_sub_ui(m, m, 1);					/* m = m -1 */
+	mpz_sub_ui(m, m, 1);					/* m = m - 1 */
 	mpz_init_set(q1, q);					/* q1 = q */
-	mpz_sub_ui(q1, q1, 1);					/* q1 = q1 -1 */
+	mpz_sub_ui(q1, q1, 1);					/* q1 = q1 - 1 */
 	mpz_gcd(t, m, q1);						/* t = gcd(p-1, q-1) */
 	mpz_mul(m, m, q1);						/* m = (p-1)*(q-1) */
-	mpz_divexact(m, m, t);					/* m = m / t */
+	mpz_divexact(m, m, t);					/* m = m / t = lcm(p-1, q-1) */
 	mpz_gcd(t, m, e);						/* t = gcd(m, e) */
 
 	mpz_invert(d, e, m);					/* e has an inverse mod m */
@@ -693,6 +700,8 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 	{
 		mpz_add(d, d, m);
 	}
+	mpz_divexact_ui(m, m, 2);				/* m = m / 2 = lcm(p-1, q-1) / 2 */
+
 	mpz_sub_ui(t, p, 1);					/* t = p-1 */
 	mpz_mod(exp1, d, t);					/* exp1 = d mod p-1 */
 	mpz_sub_ui(t, q, 1);					/* t = q-1 */
@@ -703,9 +712,6 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 	{
 		mpz_add(coeff, coeff, p);
 	}
-
-	gmp_mpz_clear_sensitive(q1);
-	gmp_mpz_clear_sensitive(t);
 
 	this = gmp_rsa_private_key_create_empty();
 
@@ -725,6 +731,9 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 	this->d = malloc(threshold * sizeof(mpz_t));
 	(*this->d)[0] = *d;
 
+	/* verification key not needed for threshold = 1 */
+	mpz_init_set_ui(v, 1);
+
 	if (threshold > 1)
 	{
 		rng_t *rng;
@@ -743,8 +752,28 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_gen(key_type_t type, va_list args)
 			(*this->d)[i] = *d;
 			chunk_free(&random_bytes);
 		}
+
+		/* generate verification key v as a square number */
+		do
+		{
+			rng->allocate_bytes(rng, key_size, &random_bytes);
+			mpz_init(v);
+			mpz_import(v, random_bytes.len, 1, 1, 1, 0, random_bytes.ptr);
+			mpz_mul(v, v, v);
+			mpz_mod(v, v, n);
+			mpz_gcd(t, v, n);
+			chunk_free(&random_bytes);
+		}
+		while (mpz_cmp_ui(t, 1) != 0);
+
 		rng->destroy(rng);
 	}
+
+	/* store verification key */
+	*this->v = *v;
+
+	gmp_mpz_clear_sensitive(q1);
+	gmp_mpz_clear_sensitive(t);
 
 	/* set key size in bytes */
 	this->k = key_size;
@@ -809,6 +838,7 @@ gmp_rsa_private_key_t *gmp_rsa_private_key_load(key_type_t type, va_list args)
 	mpz_init(this->exp1);
 	mpz_init(this->exp2);
 	mpz_init(this->coeff);
+	mpz_init_set_ui(this->v, 1);
 
 	mpz_import(this->n, n.len, 1, 1, 1, 0, n.ptr);
 	mpz_import(this->e, e.len, 1, 1, 1, 0, e.ptr);
