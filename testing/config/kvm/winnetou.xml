@@ -6,7 +6,7 @@
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='x86_64' machine='pc-1.1'>hvm</type>
-	<kernel>/var/run/kvm-swan-kernel</kernel>
+    <kernel>/var/run/kvm-swan-kernel</kernel>
     <cmdline>root=/dev/vda1 loglevel=1</cmdline>
     <boot dev='hd'/>
   </os>
