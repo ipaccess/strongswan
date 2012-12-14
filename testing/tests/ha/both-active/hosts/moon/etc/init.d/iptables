@@ -26,7 +26,7 @@ start() {
 	iptables -A FORWARD -m policy -o eth0 --dir out --pol ipsec --proto esp -j ACCEPT
 
         # clusterip rules
-        iptables -A INPUT -i eth0 -d 192.168.0.5 -j CLUSTERIP --new --hashmode sourceip \
+        iptables -A INPUT -i eth0 -d 192.168.9.5 -j CLUSTERIP --new --hashmode sourceip \
                           --clustermac 01:00:c0:a8:00:05 --total-nodes 2 --local-node 1
         iptables -A INPUT -i eth1 -d 10.1.0.5 -j CLUSTERIP --new --hashmode sourceip \
                           --clustermac 01:00:0a:01:00:05 --total-nodes 2 --local-node 1

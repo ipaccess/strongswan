@@ -8,7 +8,7 @@
 
 127.0.0.1	localhost
 
-192.168.0.254	uml0.strongswan.org	uml0
+192.168.9.254	uml0.strongswan.org	uml0
 10.1.0.254	uml1.strongswan.org	uml1
 10.2.0.254	uml1.strongswan.org	uml2
 
@@ -20,15 +20,15 @@
 10.1.0.51	dave3.strongswan.org	dave3
 10.1.0.5	mars1.strongswan.org	mars1	# virtual gateway
 10.1.0.1	moon1.strongswan.org	moon1
-192.168.0.1	moon.strongswan.org	moon
-192.168.0.5	mars.strongswan.org	mars	# virtual gateway
-192.168.0.50	alice1.strongswan.org	alice1
-192.168.0.100	carol.strongswan.org	carol
+192.168.9.1	moon.strongswan.org	moon
+192.168.9.5	mars.strongswan.org	mars	# virtual gateway
+192.168.9.50	alice1.strongswan.org	alice1
+192.168.9.100	carol.strongswan.org	carol
 10.3.0.1	carol1.strongswan.org	carol1
-192.168.0.150	winnetou.strongswan.org	winnetou crl.strongswan.org ocsp.strongswan.org ldap.strongswan.org
-192.168.0.200	dave.strongswan.org	dave
+192.168.9.150	winnetou.strongswan.org	winnetou crl.strongswan.org ocsp.strongswan.org ldap.strongswan.org
+192.168.9.200	dave.strongswan.org	dave
 10.3.0.2	dave1.strongswan.org	dave1
-192.168.0.2	sun.strongswan.org	sun
+192.168.9.2	sun.strongswan.org	sun
 10.2.0.1	sun1.strongswan.org	sun1
 10.2.0.10	bob.strongswan.org	bob
 

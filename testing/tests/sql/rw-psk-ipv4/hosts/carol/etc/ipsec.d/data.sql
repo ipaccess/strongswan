@@ -2,13 +2,13 @@
 
 INSERT INTO identities (
   type, data
-) VALUES ( /* 192.168.0.1 */
+) VALUES ( /* 192.168.9.1 */
   1 , X'c0a80001'
  );
 
 INSERT INTO identities (
   type, data
-) VALUES ( /* 192.168.0.100 */
+) VALUES ( /* 192.168.9.100 */
   1 , X'c0a80064'
  );
 

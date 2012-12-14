@@ -1,7 +1,7 @@
-carol::ipsec status 2> /dev/null::home.*ESTABLISHED.*\[192.168.0.100].*\[192.168.0.1]::YES
-dave:: ipsec status 2> /dev/null::home.*ESTABLISHED.*\[192.168.0.200].*\[192.168.0.1]::YES
-moon:: ipsec status 2> /dev/null::rw\[1]: ESTABLISHED.*\[192.168.0.1].*\[192.168.0.100]::YES
-moon:: ipsec status 2> /dev/null::rw\[2]: ESTABLISHED.*\[192.168.0.1].*\[192.168.0.200]::YES
+carol::ipsec status 2> /dev/null::home.*ESTABLISHED.*\[192.168.9.100].*\[192.168.9.1]::YES
+dave:: ipsec status 2> /dev/null::home.*ESTABLISHED.*\[192.168.9.200].*\[192.168.9.1]::YES
+moon:: ipsec status 2> /dev/null::rw\[1]: ESTABLISHED.*\[192.168.9.1].*\[192.168.9.100]::YES
+moon:: ipsec status 2> /dev/null::rw\[2]: ESTABLISHED.*\[192.168.9.1].*\[192.168.9.200]::YES
 carol::ipsec status 2> /dev/null::home.*INSTALLED, TUNNEL::YES
 dave:: ipsec status 2> /dev/null::home.*INSTALLED, TUNNEL::YES
 moon:: ipsec status 2> /dev/null::rw[{]1}.*INSTALLED, TUNNEL::YES
