@@ -144,6 +144,7 @@ METHOD(authenticator_t, build, status_t,
 			return status;
 	}
 	keymat = this->ike_sa->get_keymat(this->ike_sa);
+	id = this->ike_sa->get_my_id(this->ike_sa);
 	octets = keymat->get_auth_octets(keymat, FALSE, this->ike_sa_init,
 									 this->nonce, id, this->reserved);
 	if (private->sign(private, scheme, octets, &auth_data))
@@ -206,14 +207,14 @@ METHOD(authenticator_t, process, status_t,
 			return INVALID_ARG;
 	}
 	auth_data = auth_payload->get_data(auth_payload);
-	id = get_cert_id(this->ike_sa, FALSE);
+	id = this->ike_sa->get_other_id(this->ike_sa);
 
 	keymat = this->ike_sa->get_keymat(this->ike_sa);
 	octets = keymat->get_auth_octets(keymat, TRUE, this->ike_sa_init,
 									 this->nonce, id, this->reserved);
 	auth = this->ike_sa->get_auth_cfg(this->ike_sa, FALSE);
 	enumerator = lib->credmgr->create_public_enumerator(lib->credmgr,
-														key_type, id, auth);
+							key_type, get_cert_id(this->ike_sa, FALSE), auth);
 	while (enumerator->enumerate(enumerator, &public, &current_auth))
 	{
 		if (public->verify(public, scheme, octets, auth_data))
