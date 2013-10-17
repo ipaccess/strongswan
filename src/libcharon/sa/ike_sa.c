@@ -1454,6 +1454,10 @@ METHOD(ike_sa_t, delete_, status_t,
 			}
 			/* FALL */
 		case IKE_ESTABLISHED:
+			if (this->state == IKE_ESTABLISHED)
+			{
+				set_condition(this, COND_DELETING);
+			}
 			if (time_monotonic(NULL) >= this->stats[STAT_DELETE])
 			{	/* IKE_SA hard lifetime hit */
 				charon->bus->alert(charon->bus, ALERT_IKE_SA_EXPIRED);
@@ -1566,6 +1570,12 @@ METHOD(ike_sa_t, reestablish, status_t,
 	child_cfg_t *child_cfg;
 	bool restart = FALSE;
 	status_t status = FAILED;
+
+	if (has_condition(this, COND_DELETING))
+	{
+		/* don't try reestablishing the SA if it has been marked for deletion */
+		return FAILED;
+	}
 
 	if (has_condition(this, COND_REAUTHENTICATING))
 	{	/* only reauthenticate if we have children */

@@ -192,6 +192,12 @@ enum ike_condition_t {
 	 * This IKE_SA is currently being reauthenticated
 	 */
 	COND_REAUTHENTICATING = (1<<10),
+
+	/**
+	 * The IKE_SA has been marked for deletion (but not during rekeyings)
+	 */
+	COND_DELETING = (1<<11),
+
 };
 
 /**
