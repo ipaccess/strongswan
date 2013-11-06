@@ -79,19 +79,21 @@ static GValue* handler_to_val(nm_handler_t *handler,
 }
 
 /**
- * signal IPv4 config to NM, set connection as established
+ * signal IP config to NM, set connection as established
  */
-static void signal_ipv4_config(NMVPNPlugin *plugin,
-							   ike_sa_t *ike_sa, child_sa_t *child_sa)
+static void signal_ip_config(NMVPNPlugin *plugin,
+							 ike_sa_t *ike_sa, child_sa_t *child_sa)
 {
 	NMStrongswanPluginPrivate *priv = NM_STRONGSWAN_PLUGIN_GET_PRIVATE(plugin);
 	GValue *val;
-	GHashTable *config;
+	GHashTable *config, *config4, *config6;
 	enumerator_t *enumerator;
-	host_t *me;
+	host_t *me, *me4 = NULL, *me6 = NULL;
 	nm_handler_t *handler;
 
 	config = g_hash_table_new(g_str_hash, g_str_equal);
+	config4 = g_hash_table_new(g_str_hash, g_str_equal);
+	config6 = g_hash_table_new(g_str_hash, g_str_equal);
 	handler = priv->handler;
 
 	/* NM requires a tundev, but netkey does not use one. Passing the physical
@@ -100,26 +102,74 @@ static void signal_ipv4_config(NMVPNPlugin *plugin,
 	val = g_slice_new0 (GValue);
 	g_value_init (val, G_TYPE_STRING);
 	g_value_set_string (val, priv->tun->get_name(priv->tun));
-	g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_TUNDEV, val);
+	g_hash_table_insert (config, NM_VPN_PLUGIN_CONFIG_TUNDEV, val);
 
 	/* NM installs this IP address on the interface above, so we use the VIP if
 	 * we got one.
 	 */
 	enumerator = ike_sa->create_virtual_ip_enumerator(ike_sa, TRUE);
-	if (!enumerator->enumerate(enumerator, &me))
+	while (enumerator->enumerate(enumerator, &me))
 	{
-		me = ike_sa->get_my_host(ike_sa);
+		switch (me->get_family(me))
+		{
+			case AF_INET:
+				if (!me4)
+				{
+					me4 = me;
+				}
+				break;
+			case AF_INET6:
+				if (!me6)
+				{
+					me6 = me;
+				}
+				break;
+		}
 	}
 	enumerator->destroy(enumerator);
-	val = g_slice_new0(GValue);
-	g_value_init(val, G_TYPE_UINT);
-	g_value_set_uint(val, *(u_int32_t*)me->get_address(me).ptr);
-	g_hash_table_insert(config, NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS, val);
+	if (!me4 && !me6)
+	{
+		me = ike_sa->get_my_host(ike_sa);
+		switch (me->get_family(me))
+		{
+			case AF_INET:
+				me4 = me;
+				break;
+			case AF_INET6:
+				me6 = me;
+				break;
+		}
+	}
 
-	val = g_slice_new0(GValue);
-	g_value_init(val, G_TYPE_UINT);
-	g_value_set_uint(val, me->get_address(me).len * 8);
-	g_hash_table_insert(config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
+	if (me4)
+	{
+		val = g_slice_new0(GValue);
+		g_value_init(val, G_TYPE_UINT);
+		g_value_set_uint(val, *(u_int32_t*)me4->get_address(me4).ptr);
+		g_hash_table_insert(config4, NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS, val);
+
+		val = g_slice_new0(GValue);
+		g_value_init(val, G_TYPE_UINT);
+		g_value_set_uint(val, me->get_address(me).len * 8);
+		g_hash_table_insert(config4, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
+	}
+	if (me6)
+	{
+		GByteArray *arr;
+		chunk_t addr = me->get_address(me);
+
+		val = g_slice_new0(GValue);
+		g_value_init(val, DBUS_TYPE_G_UCHAR_ARRAY);
+		arr = g_byte_array_new();
+		g_byte_array_append(arr, addr.ptr, addr.len);
+		g_value_take_boxed(val, arr);
+		g_hash_table_insert(config6, NM_VPN_PLUGIN_IP6_CONFIG_ADDRESS, val);
+
+		val = g_slice_new0(GValue);
+		g_value_init(val, G_TYPE_UINT);
+		g_value_set_uint(val, addr.len * 8);
+		g_hash_table_insert(config6, NM_VPN_PLUGIN_IP6_CONFIG_PREFIX, val);
+	}
 
 	/* prevent NM from changing the default route. we set our own route in our
 	 * own routing table
@@ -127,17 +177,36 @@ static void signal_ipv4_config(NMVPNPlugin *plugin,
 	val = g_slice_new0(GValue);
 	g_value_init(val, G_TYPE_BOOLEAN);
 	g_value_set_boolean(val, TRUE);
-	g_hash_table_insert(config, NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, val);
+	g_hash_table_insert(config4, NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, val);
+
+	val = g_slice_new0(GValue);
+	g_value_init(val, G_TYPE_BOOLEAN);
+	g_value_set_boolean(val, TRUE);
+	g_hash_table_insert(config6, NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT, val);
 
 	val = handler_to_val(handler, INTERNAL_IP4_DNS);
-	g_hash_table_insert(config, NM_VPN_PLUGIN_IP4_CONFIG_DNS, val);
+	g_hash_table_insert(config4, NM_VPN_PLUGIN_IP4_CONFIG_DNS, val);
+	val = handler_to_val(handler, INTERNAL_IP6_DNS);
+	g_hash_table_insert(config6, NM_VPN_PLUGIN_IP6_CONFIG_DNS, val);
 
 	val = handler_to_val(handler, INTERNAL_IP4_NBNS);
-	g_hash_table_insert(config, NM_VPN_PLUGIN_IP4_CONFIG_NBNS, val);
+	g_hash_table_insert(config4, NM_VPN_PLUGIN_IP4_CONFIG_NBNS, val);
+	/* NM_VPN_PLUGIN_IP6_CONFIG_NBNS is not defined */
 
 	handler->reset(handler);
 
-	nm_vpn_plugin_set_ip4_config(plugin, config);
+	val = g_slice_new0(GValue);
+	g_value_init(val, G_TYPE_BOOLEAN);
+	g_value_set_boolean(val, TRUE);
+	g_hash_table_insert(config, NM_VPN_PLUGIN_CONFIG_HAS_IP4, val);
+	val = g_slice_new0(GValue);
+	g_value_init(val, G_TYPE_BOOLEAN);
+	g_value_set_boolean(val, TRUE);
+	g_hash_table_insert(config, NM_VPN_PLUGIN_CONFIG_HAS_IP6, val);
+
+	nm_vpn_plugin_set_config(plugin, config);
+	nm_vpn_plugin_set_ip4_config(plugin, config4);
+	nm_vpn_plugin_set_ip6_config(plugin, config6);
 }
 
 /**
@@ -200,7 +269,7 @@ static bool child_updown(listener_t *listener, ike_sa_t *ike_sa,
 		{	/* disable initiate-failure-detection hooks */
 			private->listener.ike_state_change = NULL;
 			private->listener.child_state_change = NULL;
-			signal_ipv4_config(private->plugin, ike_sa, child_sa);
+			signal_ip_config(private->plugin, ike_sa, child_sa);
 		}
 		else
 		{
