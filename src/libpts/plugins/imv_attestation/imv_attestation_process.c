@@ -366,6 +366,7 @@ bool imv_attestation_process(pa_tnc_attr_t *attr, imv_msg_t *out_msg,
 			pts_comp_evidence_t *evidence;
 			pts_component_t *comp;
 			u_int32_t depth;
+			status_t status;
 
 			attr_cast = (tcg_pts_attr_simple_comp_evid_t*)attr;
 			evidence = attr_cast->get_comp_evidence(attr_cast);
@@ -377,8 +378,8 @@ bool imv_attestation_process(pa_tnc_attr_t *attr, imv_msg_t *out_msg,
 				DBG1(DBG_IMV, "  no entry found for component evidence request");
 				break;
 			}
-			if (comp->verify(comp, name->get_qualifier(name), pts,
-							 evidence) != SUCCESS)
+			status = comp->verify(comp, name->get_qualifier(name), pts, evidence);
+			if (status == VERIFY_ERROR || status == FAILED)
 			{
 				state->update_recommendation(state,
 							TNC_IMV_ACTION_RECOMMENDATION_ISOLATE,
