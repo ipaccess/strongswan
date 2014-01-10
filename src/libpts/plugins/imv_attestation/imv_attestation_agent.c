@@ -35,6 +35,8 @@
 #include <pts/pts_creds.h>
 
 #include <tcg/tcg_attr.h>
+#include <tcg/pts/tcg_pts_attr_meas_algo.h>
+#include <tcg/pts/tcg_pts_attr_proto_caps.h>
 #include <tcg/pts/tcg_pts_attr_req_file_meas.h>
 #include <tcg/pts/tcg_pts_attr_req_file_meta.h>
 
@@ -289,6 +291,7 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 	imv_state_t *state;
 	imv_session_t *session;
 	imv_attestation_state_t *attestation_state;
+	imv_attestation_handshake_state_t handshake_state;
 	TNC_IMVID imv_id;
 	TNC_Result result = TNC_RESULT_SUCCESS;
 	pts_t *pts;
@@ -300,6 +303,7 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 	}
 	attestation_state = (imv_attestation_state_t*)state;
 	pts = attestation_state->get_pts(attestation_state);
+	handshake_state = attestation_state->get_handshake_state(attestation_state);
 	platform_info = pts->get_platform_info(pts);
 	session = state->get_session(state);
 	imv_id = this->agent->get_id(this->agent);
@@ -340,6 +344,26 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 	out_msg = imv_msg_create(this->agent, state, id, imv_id, TNC_IMCID_ANY,
 							 msg_types[0]);
 
+	if (handshake_state == IMV_ATTESTATION_STATE_INIT)
+	{
+		pa_tnc_attr_t *attr;
+		pts_proto_caps_flag_t flags;
+
+		/* Send Request Protocol Capabilities attribute */
+		flags = pts->get_proto_caps(pts);
+		attr = tcg_pts_attr_proto_caps_create(flags, TRUE);
+		attr->set_noskip_flag(attr, TRUE);
+		out_msg->add_attribute(out_msg, attr);
+
+		/* Send Measurement Algorithms attribute */
+		attr = tcg_pts_attr_meas_algo_create(this->supported_algorithms, FALSE);
+		attr->set_noskip_flag(attr, TRUE);
+		out_msg->add_attribute(out_msg, attr);
+
+		attestation_state->set_handshake_state(attestation_state,
+										IMV_ATTESTATION_STATE_DISCOVERY);
+	}
+
 	if (platform_info && session &&
 	   (state->get_action_flags(state) & IMV_ATTESTATION_FLAG_ALGO) &&
 	  !(state->get_action_flags(state) & IMV_ATTESTATION_FLAG_FILE_MEAS))
@@ -351,6 +375,9 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 		pa_tnc_attr_t *attr;
 		char *pathname;
 		enumerator_t *enumerator;
+
+		attestation_state->set_handshake_state(attestation_state,
+											   IMV_ATTESTATION_STATE_END);
 
 		enumerator = session->create_workitem_enumerator(session);
 		if (enumerator)
@@ -397,7 +424,23 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 							state->update_recommendation(state, rec, eval);
 							imcv_db->finalize_workitem(imcv_db, workitem);
 							workitem->destroy(workitem);
+							continue;
 						}
+
+						/* do TPM BIOS measurements */
+						if (strchr(workitem->get_arg_str(workitem), 'B'))
+						{
+							/* TODO register BIOS functional component */
+						}
+
+						/* do TPM IMA measurements */
+						if (strchr(workitem->get_arg_str(workitem), 'I'))
+						{
+							/* TODO register IMA functional component */
+						}
+
+						attestation_state->set_handshake_state(attestation_state,
+											IMV_ATTESTATION_STATE_NONCE_REQ);
 						continue;
 					}
 					default:
@@ -467,8 +510,8 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 	}
 
 	/* check the IMV state for the next PA-TNC attributes to send */
-	if (!imv_attestation_build(out_msg, state, this->supported_algorithms,
-							   this->supported_dh_groups, this->pts_db))
+	if (!imv_attestation_build(out_msg, state, this->supported_dh_groups,
+							   this->pts_db))
 	{
 		state->set_recommendation(state,
 								TNC_IMV_ACTION_RECOMMENDATION_NO_RECOMMENDATION,

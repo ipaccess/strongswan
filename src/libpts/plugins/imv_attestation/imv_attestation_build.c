@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2011-2012 Sansar Choinyambuu, Andreas Steffen
+ * Copyright (C) 2011-2012 Sansar Choinyambuu
+ * Copyright (C) 2011-2014 Andreas Steffen
  * HSR Hochschule fuer Technik Rapperswil
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -16,8 +17,6 @@
 #include "imv_attestation_build.h"
 #include "imv_attestation_state.h"
 
-#include <tcg/pts/tcg_pts_attr_proto_caps.h>
-#include <tcg/pts/tcg_pts_attr_meas_algo.h>
 #include <tcg/pts/tcg_pts_attr_dh_nonce_params_req.h>
 #include <tcg/pts/tcg_pts_attr_dh_nonce_finish.h>
 #include <tcg/pts/tcg_pts_attr_get_tpm_version_info.h>
@@ -27,9 +26,7 @@
 
 #include <utils/debug.h>
 
-bool imv_attestation_build(imv_msg_t *out_msg,
-						   imv_state_t *state,
-						   pts_meas_algorithms_t supported_algorithms,
+bool imv_attestation_build(imv_msg_t *out_msg, imv_state_t *state,
 						   pts_dh_group_t supported_dh_groups,
 						   pts_database_t *pts_db)
 {
@@ -42,60 +39,8 @@ bool imv_attestation_build(imv_msg_t *out_msg,
 	handshake_state = attestation_state->get_handshake_state(attestation_state);
 	pts = attestation_state->get_pts(attestation_state);
 
-	/**
-	 * Received a response form the Attestation IMC so we can proceeed
-	 */
-	if (handshake_state == IMV_ATTESTATION_STATE_DISCOVERY &&
-	   (state->get_action_flags(state) & IMV_ATTESTATION_FLAG_ALGO))
-	{
-		handshake_state = IMV_ATTESTATION_STATE_NONCE_REQ;
-	}
-
-	/**
-	 * Skip DH Nonce Parameters Request attribute when
-	 *   DH Nonce Exchange is not selected by PTS-IMC side
-	 */
-	if (handshake_state == IMV_ATTESTATION_STATE_NONCE_REQ &&
-		!(pts->get_proto_caps(pts) & PTS_PROTO_CAPS_D))
-	{
-		DBG2(DBG_IMV, "PTS-IMC does not support DH Nonce negotiation");
-		handshake_state = IMV_ATTESTATION_STATE_TPM_INIT;
-	}
-
-	/**
-	 * Skip TPM Version Info and AIK attributes when
-	 *   no TPM is available on the PTS-IMC side
-	 */
-	if (handshake_state == IMV_ATTESTATION_STATE_TPM_INIT &&
-		!(pts->get_proto_caps(pts) & PTS_PROTO_CAPS_T))
-	{
-		DBG2(DBG_IMV, "PTS-IMC made no TPM available");
-		handshake_state = IMV_ATTESTATION_STATE_END;
-	}
-
 	switch (handshake_state)
 	{
-		case IMV_ATTESTATION_STATE_INIT:
-		{
-			pts_proto_caps_flag_t flags;
-
-			/* Send Request Protocol Capabilities attribute */
-			flags = pts->get_proto_caps(pts);
-			attr = tcg_pts_attr_proto_caps_create(flags, TRUE);
-			attr->set_noskip_flag(attr, TRUE);
-			out_msg->add_attribute(out_msg, attr);
-
-			/* Send Measurement Algorithms attribute */
-			attr = tcg_pts_attr_meas_algo_create(supported_algorithms, FALSE);
-			attr->set_noskip_flag(attr, TRUE);
-			out_msg->add_attribute(out_msg, attr);
-
-			attestation_state->set_handshake_state(attestation_state,
-										IMV_ATTESTATION_STATE_DISCOVERY);
-			break;
-		}
-		case IMV_ATTESTATION_STATE_DISCOVERY:
-			break;
 		case IMV_ATTESTATION_STATE_NONCE_REQ:
 		{
 			int min_nonce_len;
@@ -117,16 +62,13 @@ bool imv_attestation_build(imv_msg_t *out_msg,
 			pts_meas_algorithms_t selected_algorithm;
 			chunk_t initiator_value, initiator_nonce;
 
-			if ((pts->get_proto_caps(pts) & PTS_PROTO_CAPS_D))
-			{
-				/* Send DH nonce finish attribute */
-				selected_algorithm = pts->get_meas_algorithm(pts);
-				pts->get_my_public_value(pts, &initiator_value, &initiator_nonce);
-				attr = tcg_pts_attr_dh_nonce_finish_create(selected_algorithm,
+			/* Send DH nonce finish attribute */
+			selected_algorithm = pts->get_meas_algorithm(pts);
+			pts->get_my_public_value(pts, &initiator_value, &initiator_nonce);
+			attr = tcg_pts_attr_dh_nonce_finish_create(selected_algorithm,
 											initiator_value, initiator_nonce);
-				attr->set_noskip_flag(attr, TRUE);
-				out_msg->add_attribute(out_msg, attr);
-			}
+			attr->set_noskip_flag(attr, TRUE);
+			out_msg->add_attribute(out_msg, attr);
 
 			/* Send Get TPM Version attribute */
 			attr = tcg_pts_attr_get_tpm_version_info_create();
@@ -157,13 +99,6 @@ bool imv_attestation_build(imv_msg_t *out_msg,
 			attestation_state->set_handshake_state(attestation_state,
 										IMV_ATTESTATION_STATE_END);
 
-			if (!(pts->get_proto_caps(pts) & PTS_PROTO_CAPS_T) ||
-				!(pts->get_proto_caps(pts) & PTS_PROTO_CAPS_D))
-			{
-				DBG2(DBG_IMV, "PTS-IMC made no TPM available - "
-							  "skipping Component Measurements");
-				break;
-			}
 			if (!pts->get_aik_keyid(pts, &keyid))
 			{
 				DBG1(DBG_IMV, "retrieval of AIK keyid failed");
@@ -238,9 +173,7 @@ bool imv_attestation_build(imv_msg_t *out_msg,
 										IMV_ATTESTATION_STATE_END);
 			}
 			break;
-		case IMV_ATTESTATION_STATE_END:
-			attestation_state->set_handshake_state(attestation_state,
-										IMV_ATTESTATION_STATE_END);
+		default:
 			break;
 	}
 	return TRUE;
