@@ -88,13 +88,12 @@ bool imv_attestation_build(imv_msg_t *out_msg, imv_state_t *state,
 		{
 			tcg_pts_attr_req_func_comp_evid_t *attr_cast;
 			enumerator_t *enumerator;
-			pts_component_t *comp;
-			pts_comp_func_name_t *comp_name;
+			pts_comp_func_name_t *name;
 			chunk_t keyid;
-			int kid, vid, name, qualifier;
+			int kid;
 			u_int8_t flags;
 			u_int32_t depth;
-			bool first = TRUE, first_component = TRUE;
+			bool first_component = TRUE;
 
 			attestation_state->set_handshake_state(attestation_state,
 										IMV_ATTESTATION_STATE_END);
@@ -113,41 +112,22 @@ bool imv_attestation_build(imv_msg_t *out_msg, imv_state_t *state,
 			{
 				return FALSE;
 			}
-			enumerator = pts_db->create_comp_evid_enumerator(pts_db, kid);
-			if (!enumerator)
+			enumerator = attestation_state->create_component_enumerator(
+													attestation_state);
+			while (enumerator->enumerate(enumerator, &flags, &depth, &name))
 			{
-				break;
-			}
-			while (enumerator->enumerate(enumerator, &vid, &name,
-				&qualifier, &depth))
-			{
-				if (first)
-				{
-					DBG2(DBG_IMV, "evidence request by");
-					first = FALSE;
-				}
-				comp_name = pts_comp_func_name_create(vid, name, qualifier);
-				comp_name->log(comp_name, "  ");
-
-				comp = attestation_state->create_component(attestation_state,
-													comp_name, depth, pts_db);
-				if (!comp)
-				{
-					DBG2(DBG_IMV, "    not registered or duplicate"
-								  " - removed from request");
-					comp_name->destroy(comp_name);
-					continue;
-				}
 				if (first_component)
 				{
 					attr = tcg_pts_attr_req_func_comp_evid_create();
 					attr->set_noskip_flag(attr, TRUE);
 					first_component = FALSE;
+					DBG2(DBG_IMV, "evidence request by");
 				}
-				flags = comp->get_evidence_flags(comp);
+				name->log(name, "  ");
+
 				/* TODO check flags against negotiated_caps */
 				attr_cast = (tcg_pts_attr_req_func_comp_evid_t *)attr;
-				attr_cast->add_component(attr_cast, flags, depth, comp_name);
+				attr_cast->add_component(attr_cast, flags, depth, name);
 			}
 			enumerator->destroy(enumerator);
 

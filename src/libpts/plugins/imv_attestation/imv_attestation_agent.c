@@ -33,6 +33,7 @@
 #include <pts/pts.h>
 #include <pts/pts_database.h>
 #include <pts/pts_creds.h>
+#include <pts/components/ita/ita_comp_func_name.h>
 
 #include <tcg/tcg_attr.h>
 #include <tcg/pts/tcg_pts_attr_meas_algo.h>
@@ -403,6 +404,8 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 						break;
 					case IMV_WORKITEM_TPM_ATTEST:
 					{
+						pts_component_t *comp;
+						pts_comp_func_name_t *comp_name;
 						TNC_IMV_Action_Recommendation rec;
 						TNC_IMV_Evaluation_Result eval;
 						bool no_d_flag, no_t_flag;
@@ -430,13 +433,35 @@ METHOD(imv_agent_if_t, batch_ending, TNC_Result,
 						/* do TPM BIOS measurements */
 						if (strchr(workitem->get_arg_str(workitem), 'B'))
 						{
-							/* TODO register BIOS functional component */
+							comp_name = pts_comp_func_name_create(PEN_ITA,
+											PTS_ITA_COMP_FUNC_NAME_IMA,
+											PTS_ITA_QUALIFIER_FLAG_KERNEL |
+											PTS_ITA_QUALIFIER_TYPE_TRUSTED);
+							comp = attestation_state->create_component(
+											attestation_state, comp_name,
+											0, this->pts_db);
+							if (!comp)
+							{
+								comp_name->log(comp_name, "unregistered ");
+								comp_name->destroy(comp_name);
+							}
 						}
 
 						/* do TPM IMA measurements */
 						if (strchr(workitem->get_arg_str(workitem), 'I'))
 						{
-							/* TODO register IMA functional component */
+							comp_name = pts_comp_func_name_create(PEN_ITA,
+											PTS_ITA_COMP_FUNC_NAME_IMA,
+											PTS_ITA_QUALIFIER_FLAG_KERNEL |
+											PTS_ITA_QUALIFIER_TYPE_OS);
+							comp = attestation_state->create_component(
+											attestation_state, comp_name,
+											0, this->pts_db);
+							if (!comp)
+							{
+								comp_name->log(comp_name, "unregistered ");
+								comp_name->destroy(comp_name);
+							}
 						}
 
 						attestation_state->set_handshake_state(attestation_state,
