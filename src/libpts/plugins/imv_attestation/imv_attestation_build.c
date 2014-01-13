@@ -140,13 +140,6 @@ bool imv_attestation_build(imv_msg_t *out_msg, imv_state_t *state,
 			}
 			break;
 		}
-		case IMV_ATTESTATION_STATE_EVID_FINAL:
-			if (attestation_state->components_finalized(attestation_state))
-			{
-				attestation_state->set_handshake_state(attestation_state,
-										IMV_ATTESTATION_STATE_END);
-			}
-			break;
 		default:
 			break;
 	}

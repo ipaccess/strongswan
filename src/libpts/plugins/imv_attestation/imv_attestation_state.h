@@ -140,11 +140,6 @@ struct imv_attestation_state_t {
 	void (*finalize_components)(imv_attestation_state_t *this);
 
 	/**
-	 * Have the Functional Component measurements been finalized?
-	 */
-	bool (*components_finalized)(imv_attestation_state_t *this);
-
-	/**
 	 * Indicates the types of measurement errors that occurred
 	 *
 	 * @return					Measurement error flags

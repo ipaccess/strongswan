@@ -489,6 +489,8 @@ quote_error:
 						imcv_db->finalize_workitem(imcv_db, workitem);
 						workitem->destroy(workitem);
 						free(result_str);
+						attestation_state->set_handshake_state(attestation_state,
+													IMV_ATTESTATION_STATE_END);
 						break;
 					}
 				}
