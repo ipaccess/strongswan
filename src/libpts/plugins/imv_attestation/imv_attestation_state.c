@@ -162,6 +162,12 @@ static imv_lang_string_t reason_file_meas_pend[] = {
 	{ NULL, NULL }
 };
 
+static imv_lang_string_t reason_no_trusted_aik[] = {
+	{ "en", "No trusted AIK available" },
+	{ "de", "Kein vetrauenswürdiger AIK verfügbar" },
+	{ NULL, NULL }
+};
+
 static imv_lang_string_t reason_comp_evid_fail[] = {
 	{ "en", "Incorrect component evidence" },
 	{ "de", "Falsche Komponenten-Evidenz" },
@@ -307,6 +313,10 @@ METHOD(imv_attestation_state_t, add_file_meas_reasons, void,
 METHOD(imv_attestation_state_t, add_comp_evid_reasons, void,
 	private_imv_attestation_state_t *this, imv_reason_string_t *reason_string)
 {
+	if (this->measurement_error & IMV_ATTESTATION_ERROR_NO_TRUSTED_AIK)
+	{
+		reason_string->add_reason(reason_string, reason_no_trusted_aik);
+	}
 	if (this->measurement_error & IMV_ATTESTATION_ERROR_COMP_EVID_FAIL)
 	{
 		reason_string->add_reason(reason_string, reason_comp_evid_fail);
