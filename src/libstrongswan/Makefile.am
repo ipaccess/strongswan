@@ -104,7 +104,7 @@ utils/leak_detective.h utils/printf_hook/printf_hook.h \
 utils/printf_hook/printf_hook_vstr.h utils/printf_hook/printf_hook_builtin.h \
 utils/parser_helper.h utils/test.h utils/integrity_checker.h utils/windows.h \
 utils/utils/strerror.h utils/utils/types.h utils/utils/string.h \
-utils/utils/memory.h
+utils/utils/memory.h utils/utils/byteorder.h
 endif
 
 library.lo :	$(top_builddir)/config.status
