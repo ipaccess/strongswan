@@ -79,7 +79,7 @@ static void build_plugin_checksums(char *plugins)
 	while (enumerator->enumerate(enumerator, &plugin))
 	{
 		snprintf(under, sizeof(under), "%s", plugin);
-		translate(under, "-", "_");
+		strreplace(under, "-", "_");
 		snprintf(path, sizeof(path), "%s/libstrongswan-%s.so",
 				 PLUGINDIR, plugin);
 		snprintf(sname, sizeof(sname), "%s_plugin_create", under);
@@ -177,4 +177,3 @@ int main(int argc, char* argv[])
 
 	exit(0);
 }
-

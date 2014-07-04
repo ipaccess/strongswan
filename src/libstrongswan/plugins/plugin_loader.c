@@ -292,7 +292,7 @@ static status_t create_plugin(private_plugin_loader_t *this, void *handle,
 	{
 		return FAILED;
 	}
-	translate(create, "-", "_");
+	strsubst(create, "-", "_");
 	constructor = dlsym(handle, create);
 	if (constructor == NULL)
 	{
@@ -1319,7 +1319,7 @@ void plugin_loader_add_plugindirs(char *basedir, char *plugins)
 	while (enumerator->enumerate(enumerator, &name))
 	{
 		snprintf(dir, sizeof(dir), "%s", name);
-		translate(dir, "-", "_");
+		strsubst(dir, "-", "_");
 		snprintf(path, sizeof(path), "%s/%s/.libs", basedir, dir);
 		lib->plugins->add_path(lib->plugins, path);
 	}

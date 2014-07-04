@@ -386,7 +386,7 @@ START_TEST(test_utils_memrchr)
 END_TEST
 
 /*******************************************************************************
- * translate
+ * strsubst
  */
 
 static struct {
@@ -394,7 +394,7 @@ static struct {
 	char *from;
 	char *to;
 	char *out;
-} translate_data[] = {
+} strsubst_data[] = {
 	{NULL, "", "", NULL},
 	{"abc", "", "", "abc"},
 	{"abc", "", "x", "abc"},
@@ -409,16 +409,16 @@ static struct {
 	{"abc", "abc", "xxx", "xxx"},
 };
 
-START_TEST(test_translate)
+START_TEST(test_strsubst)
 {
 	char *str, *ret;
 
-	str = strdupnull(translate_data[_i].in);
-	ret = translate(str, translate_data[_i].from, translate_data[_i].to);
+	str = strdupnull(strsubst_data[_i].in);
+	ret = strsubst(str, strsubst_data[_i].from, strsubst_data[_i].to);
 	ck_assert(ret == str);
-	if (ret != translate_data[_i].out)
+	if (ret != strsubst_data[_i].out)
 	{
-		ck_assert_str_eq(str, translate_data[_i].out);
+		ck_assert_str_eq(str, strsubst_data[_i].out);
 	}
 	free(str);
 }
@@ -748,8 +748,8 @@ Suite *utils_suite_create()
 	tcase_add_loop_test(tc, test_utils_memrchr, 0, countof(memrchr_data));
 	suite_add_tcase(s, tc);
 
-	tc = tcase_create("translate");
-	tcase_add_loop_test(tc, test_translate, 0, countof(translate_data));
+	tc = tcase_create("strsubst");
+	tcase_add_loop_test(tc, test_strsubst, 0, countof(strsubst_data));
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("strreplace");

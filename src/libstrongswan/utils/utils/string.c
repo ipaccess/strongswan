@@ -20,7 +20,7 @@
 /**
  * Described in header.
  */
-char* translate(char *str, const char *from, const char *to)
+char* strsubst(char *str, const char *from, const char *to)
 {
 	char *pos = str;
 	if (strlen(from) != strlen(to))

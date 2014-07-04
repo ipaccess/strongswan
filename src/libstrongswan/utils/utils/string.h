@@ -80,12 +80,18 @@ static inline char *strdupnull(const char *s)
 }
 
 /**
- * Translates the characters in the given string, searching for characters
- * in 'from' and mapping them to characters in 'to'.
+ * Substitute the characters in the given string.
+ *
+ * Searches for characters in 'from' and mapping them to characters in 'to'.
  * The two characters sets 'from' and 'to' must contain the same number of
  * characters.
+ *
+ * @param str		string to replace characters in
+ * @param from		null-terminated list of characters to substitute.
+ * @param to		null-terminated list of characters to substitute with
+ * @return			str
  */
-char *translate(char *str, const char *from, const char *to);
+char *strsubst(char *str, const char *from, const char *to);
 
 /**
  * Replaces all occurrences of search in the given string with replace.
