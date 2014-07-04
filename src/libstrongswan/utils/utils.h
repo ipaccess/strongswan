@@ -79,6 +79,7 @@
 #include "utils/string.h"
 #include "utils/memory.h"
 #include "utils/byteorder.h"
+#include "utils/time.h"
 
 /**
  * Directory separator character in paths on this platform
@@ -246,16 +247,6 @@ void utils_deinit();
  */
 #define ASSIGN(method, function) (method = (typeof(method))function)
 
-/**
- * time_t not defined
- */
-#define UNDEFINED_TIME 0
-
-/**
- * Maximum time since epoch causing wrap-around on Jan 19 03:14:07 UTC 2038
- */
-#define TIME_32_BIT_SIGNED_MAX	0x7fffffff
-
 
 typedef enum status_t status_t;
 
@@ -376,16 +367,6 @@ char* tty_escape_get(int fd, tty_escape_t escape);
 typedef const char *err_t;
 
 /**
- * Handle struct timeval like an own type.
- */
-typedef struct timeval timeval_t;
-
-/**
- * Handle struct timespec like an own type.
- */
-typedef struct timespec timespec_t;
-
-/**
  * Handle struct chunk_t like an own type.
  */
 typedef struct sockaddr sockaddr_t;
@@ -446,34 +427,6 @@ bool mkdir_p(const char *path, mode_t mode);
  */
 void closefrom(int lowfd);
 #endif
-
-/**
- * Get a timestamp from a monotonic time source.
- *
- * While the time()/gettimeofday() functions are affected by leap seconds
- * and system time changes, this function returns ever increasing monotonic
- * time stamps.
- *
- * @param tv		timeval struct receiving monotonic timestamps, or NULL
- * @return			monotonic timestamp in seconds
- */
-time_t time_monotonic(timeval_t *tv);
-
-/**
- * Add the given number of milliseconds to the given timeval struct
- *
- * @param tv		timeval struct to modify
- * @param ms		number of milliseconds
- */
-static inline void timeval_add_ms(timeval_t *tv, u_int ms)
-{
-	tv->tv_usec += ms * 1000;
-	while (tv->tv_usec >= 1000000 /* 1s */)
-	{
-		tv->tv_usec -= 1000000;
-		tv->tv_sec++;
-	}
-}
 
 /**
  * returns null
@@ -643,23 +596,5 @@ bool cas_ptr(void **ptr, void *oldval, void *newval);
 FILE *fmemopen(void *buf, size_t size, const char *mode);
 # endif /* FUNOPEN */
 #endif /* FMEMOPEN */
-
-/**
- * printf hook for time_t.
- *
- * Arguments are:
- *	time_t* time, bool utc
- */
-int time_printf_hook(printf_hook_data_t *data, printf_hook_spec_t *spec,
-					 const void *const *args);
-
-/**
- * printf hook for time_t deltas.
- *
- * Arguments are:
- *	time_t* begin, time_t* end
- */
-int time_delta_printf_hook(printf_hook_data_t *data, printf_hook_spec_t *spec,
-						   const void *const *args);
 
 #endif /** UTILS_H_ @}*/
