@@ -73,27 +73,7 @@
 #define BUILD_ASSERT_ARRAY(a) \
 		BUILD_ASSERT(!__builtin_types_compatible_p(typeof(a), typeof(&(a)[0])))
 
-/**
- * General purpose boolean type.
- */
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-# ifndef HAVE__BOOL
-#  define _Bool signed char
-# endif /* HAVE__BOOL */
-# define bool _Bool
-# define false 0
-# define true 1
-# define __bool_true_false_are_defined 1
-#endif /* HAVE_STDBOOL_H */
-#ifndef FALSE
-# define FALSE false
-#endif /* FALSE */
-#ifndef TRUE
-# define TRUE  true
-#endif /* TRUE */
-
+#include "utils/types.h"
 #include "enum.h"
 #include "utils/strerror.h"
 
@@ -370,18 +350,6 @@ static inline void *memset_noop(void *s, int c, size_t n)
  */
 #define TIME_32_BIT_SIGNED_MAX	0x7fffffff
 
-/**
- * define some missing fixed width int types on OpenSolaris.
- * TODO: since the uintXX_t types are defined by the C99 standard we should
- * probably use those anyway
- */
-#if defined __sun || defined WIN32
-        #include <stdint.h>
-        typedef uint8_t         u_int8_t;
-        typedef uint16_t        u_int16_t;
-        typedef uint32_t        u_int32_t;
-        typedef uint64_t        u_int64_t;
-#endif
 
 typedef enum status_t status_t;
 
