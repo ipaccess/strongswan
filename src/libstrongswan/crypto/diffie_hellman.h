@@ -68,7 +68,9 @@ enum diffie_hellman_group_t {
 	NTRU_112_BIT = 1030,
 	NTRU_128_BIT = 1031,
 	NTRU_192_BIT = 1032,
-	NTRU_256_BIT = 1033
+	NTRU_256_BIT = 1033,
+	/** Curve 25519, private use */
+	CURVE_25519 = 1034,
 };
 
 /**
