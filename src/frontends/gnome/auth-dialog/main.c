@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2014 Tobias Brunner
  * Copyright (C) 2008-2011 Martin Willi
  * Hochschule fuer Technik Rapperswil
  * Copyright (C) 2004 Dan Williams
@@ -22,7 +23,7 @@
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <gnome-keyring.h>
+#include <libsecret/secret.h>
 #include <libgnomeui/libgnomeui.h>
 #include <nm-vpn-plugin.h>
 #include <nm-setting-vpn.h>
@@ -31,32 +32,39 @@
 
 #define NM_DBUS_SERVICE_STRONGSWAN	"org.freedesktop.NetworkManager.strongswan"
 
+#define KEYRING_UUID_TAG "connection-uuid"
+#define KEYRING_SN_TAG "setting-name"
+#define KEYRING_SK_TAG "setting-key"
+
+static const SecretSchema network_manager_secret_schema = {
+	"org.freedesktop.NetworkManager.Connection",
+	SECRET_SCHEMA_DONT_MATCH_NAME,
+	{
+		{ KEYRING_UUID_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ KEYRING_SN_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ KEYRING_SK_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ NULL, 0 },
+	}
+};
+
 /**
  * lookup a password in the keyring
  */
-static char *lookup_password(char *name, char *service)
+static char *lookup_password(char *uuid, char *name, char *service)
 {
-	GList *list;
-	GList *iter;
-	char *pass = NULL;
+	char *pass;
 
-	if (gnome_keyring_find_network_password_sync(g_get_user_name(), NULL, name,
-			NULL, service, NULL, 0, &list) != GNOME_KEYRING_RESULT_OK)
+	pass = secret_password_lookup_sync(&network_manager_secret_schema,
+						NULL, NULL, KEYRING_UUID_TAG, uuid,
+						KEYRING_SN_TAG, NM_SETTING_VPN_SETTING_NAME,
+						KEYRING_SK_TAG, "password", NULL);
+	if (!pass)
 	{
-		return NULL;
+		/* try the legacy schema */
+		pass = secret_password_lookup_sync(SECRET_SCHEMA_COMPAT_NETWORK,
+						NULL, NULL, "user", g_get_user_name(), "server", name,
+						"protocol", service, NULL);
 	}
-
-	for (iter = list; iter; iter = iter->next)
-	{
-		GnomeKeyringNetworkPasswordData *data = iter->data;
-
-		if (strcmp(data->object, "password") == 0 && data->password)
-		{
-			pass = g_strdup(data->password);
-			break;
-		}
-	}
-	gnome_keyring_network_password_list_free(list);
 	return pass;
 }
 
@@ -118,7 +126,7 @@ int main (int argc, char *argv[])
 	gchar *name = NULL, *uuid = NULL, *service = NULL, *keyring = NULL, *pass;
 	GOptionContext *context;
 	char *agent, *type;
-	guint32 itemid, minlen = 0;
+	guint32 minlen = 0;
 	GtkWidget *dialog;
 	GOptionEntry entries[] = {
 		{ "reprompt", 'r', 0, G_OPTION_ARG_NONE, &retry, "Reprompt for passwords", NULL},
@@ -162,7 +170,7 @@ int main (int argc, char *argv[])
 	if (!strcmp(type, "eap") || !strcmp(type, "key") || !strcmp(type, "psk") ||
 		!strcmp(type, "smartcard"))
 	{
-		pass = lookup_password(name, service);
+		pass = lookup_password(uuid, name, service);
 		if ((!pass || retry) && allow_interaction)
 		{
 			if (!strcmp(type, "eap"))
@@ -216,12 +224,14 @@ too_short_retry:
 				case GNOME_PASSWORD_DIALOG_REMEMBER_NOTHING:
 					break;
 				case GNOME_PASSWORD_DIALOG_REMEMBER_SESSION:
-					keyring = "session";
+					keyring = SECRET_COLLECTION_SESSION;
 					/* FALL */
 				case GNOME_PASSWORD_DIALOG_REMEMBER_FOREVER:
-					if (gnome_keyring_set_network_password_sync(keyring,
-							g_get_user_name(), NULL, name, "password", service, NULL, 0,
-							pass, &itemid) != GNOME_KEYRING_RESULT_OK)
+					if (!secret_password_store_sync(&network_manager_secret_schema,
+							keyring, "", pass, NULL, NULL,
+							KEYRING_UUID_TAG, uuid,
+							KEYRING_SN_TAG, NM_SETTING_VPN_SETTING_NAME,
+							KEYRING_SK_TAG, "password", NULL))
 					{
 						g_warning ("storing password in keyring failed");
 					}
