@@ -1246,7 +1246,7 @@ ADD_PLUGIN([agent],                [s charon nm cmd])
 ADD_PLUGIN([keychain],             [s charon cmd])
 ADD_PLUGIN([xcbc],                 [s charon nm cmd])
 ADD_PLUGIN([cmac],                 [s charon nm cmd])
-ADD_PLUGIN([hmac],                 [s charon scripts nm cmd])
+ADD_PLUGIN([hmac],                 [s charon pki scripts nm cmd])
 ADD_PLUGIN([ctr],                  [s charon scripts nm cmd])
 ADD_PLUGIN([ccm],                  [s charon scripts nm cmd])
 ADD_PLUGIN([gcm],                  [s charon scripts nm cmd])
@@ -1784,6 +1784,7 @@ AC_CONFIG_FILES([
 	src/pki/man/pki---issue.1
 	src/pki/man/pki---keyid.1
 	src/pki/man/pki---pkcs7.1
+	src/pki/man/pki---pkcs12.1
 	src/pki/man/pki---print.1
 	src/pki/man/pki---pub.1
 	src/pki/man/pki---req.1
