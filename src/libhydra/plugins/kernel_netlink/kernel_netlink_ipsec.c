@@ -1449,6 +1449,10 @@ METHOD(kernel_ipsec_t, add_sa, status_t,
 		 * checks it marks them "checksum ok" so OA isn't needed. */
 	}
 
+	if (mark.value == MARK_REQID)
+	{
+		mark.value = reqid;
+	}
 	if (!add_mark(hdr, sizeof(request), mark))
 	{
 		goto failed;

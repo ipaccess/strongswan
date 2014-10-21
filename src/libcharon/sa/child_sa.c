@@ -720,6 +720,21 @@ METHOD(child_sa_t, install, status_t,
 
 	free(lifetime);
 
+	if (inbound)
+	{
+		if (this->mark_in.value == MARK_REQID)
+		{
+			this->mark_in.value = this->reqid;
+		}
+	}
+	else
+	{
+		if (this->mark_out.value == MARK_REQID)
+		{
+			this->mark_out.value = this->reqid;
+		}
+	}
+
 	return status;
 }
 
@@ -1217,15 +1232,6 @@ child_sa_t * child_sa_create(host_t *me, host_t* other,
 				this->reqid = ref_get(&reqid);
 			}
 		}
-	}
-
-	if (this->mark_in.value == MARK_REQID)
-	{
-		this->mark_in.value = this->reqid;
-	}
-	if (this->mark_out.value == MARK_REQID)
-	{
-		this->mark_out.value = this->reqid;
 	}
 
 	/* MIPv6 proxy transport mode sets SA endpoints to TS hosts */
