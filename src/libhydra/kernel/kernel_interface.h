@@ -127,11 +127,15 @@ struct kernel_interface_t {
 	 * This function does install a single SA for a single protocol in one
 	 * direction.
 	 *
+	 * The reqid parameter is an in/out parameter. If it points to non-zero,
+	 * the reqid value is used for the SA. If it points to zero, a reqid
+	 * is allocated for the given selectors, and returned to reqid.
+	 *
 	 * @param src			source address for this SA
 	 * @param dst			destination address for this SA
 	 * @param spi			SPI allocated by us or remote peer
 	 * @param protocol		protocol for this SA (ESP/AH)
-	 * @param reqid			unique ID for this SA
+	 * @param reqid			reqid for this SA, point to zero to allocate
 	 * @param mark			optional mark for this SA
 	 * @param tfc			Traffic Flow Confidentiality padding for this SA
 	 * @param lifetime		lifetime_cfg_t for this SA
@@ -153,7 +157,7 @@ struct kernel_interface_t {
 	 */
 	status_t (*add_sa) (kernel_interface_t *this,
 						host_t *src, host_t *dst, u_int32_t spi,
-						u_int8_t protocol, u_int32_t reqid, mark_t mark,
+						u_int8_t protocol, u_int32_t *reqid, mark_t mark,
 						u_int32_t tfc, lifetime_cfg_t *lifetime,
 						u_int16_t enc_alg, chunk_t enc_key,
 						u_int16_t int_alg, chunk_t int_key,

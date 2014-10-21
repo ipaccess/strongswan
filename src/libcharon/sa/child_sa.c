@@ -712,7 +712,7 @@ METHOD(child_sa_t, install, status_t,
 	}
 
 	status = hydra->kernel_interface->add_sa(hydra->kernel_interface,
-				src, dst, spi, proto_ike2ip(this->protocol), this->reqid,
+				src, dst, spi, proto_ike2ip(this->protocol), &this->reqid,
 				inbound ? this->mark_in : this->mark_out, tfc,
 				lifetime, enc_alg, encr, int_alg, integ, this->mode,
 				this->ipcomp, cpi, this->config->get_replay_window(this->config),
@@ -1161,7 +1161,6 @@ static host_t* get_proxy_addr(child_cfg_t *config, host_t *ike, bool local)
 child_sa_t * child_sa_create(host_t *me, host_t* other,
 							 child_cfg_t *config, u_int32_t rekey, bool encap)
 {
-	static refcount_t reqid = 0;
 	private_child_sa_t *this;
 
 	INIT(this,
@@ -1227,10 +1226,6 @@ child_sa_t * child_sa_create(host_t *me, host_t* other,
 		else
 		{
 			this->reqid = charon->traps->find_reqid(charon->traps, config);
-			if (!this->reqid)
-			{
-				this->reqid = ref_get(&reqid);
-			}
 		}
 	}
 
