@@ -1084,14 +1084,14 @@ METHOD(child_sa_t, destroy, void,
 	{
 		hydra->kernel_interface->del_sa(hydra->kernel_interface,
 					this->other_addr, this->my_addr, this->my_spi,
-					proto_ike2ip(this->protocol), this->my_cpi,
+					proto_ike2ip(this->protocol), this->reqid, this->my_cpi,
 					this->mark_in);
 	}
 	if (this->other_spi)
 	{
 		hydra->kernel_interface->del_sa(hydra->kernel_interface,
 					this->my_addr, this->other_addr, this->other_spi,
-					proto_ike2ip(this->protocol), this->other_cpi,
+					proto_ike2ip(this->protocol), this->reqid, this->other_cpi,
 					this->mark_out);
 	}
 

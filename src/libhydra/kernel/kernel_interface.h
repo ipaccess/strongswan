@@ -213,13 +213,14 @@ struct kernel_interface_t {
 	 * @param dst			destination address for this SA
 	 * @param spi			SPI allocated by us or remote peer
 	 * @param protocol		protocol for this SA (ESP/AH)
+	 * @param reqid			reqid of the SA to delete
 	 * @param cpi			CPI for IPComp or 0
 	 * @param mark			optional mark for this SA
 	 * @return				SUCCESS if operation completed
 	 */
 	status_t (*del_sa) (kernel_interface_t *this, host_t *src, host_t *dst,
-						u_int32_t spi, u_int8_t protocol, u_int16_t cpi,
-						mark_t mark);
+						u_int32_t spi, u_int8_t protocol, u_int32_t reqid,
+						u_int16_t cpi, mark_t mark);
 
 	/**
 	 * Flush all SAs from the SAD.

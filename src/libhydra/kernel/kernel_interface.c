@@ -222,7 +222,7 @@ METHOD(kernel_interface_t, query_sa, status_t,
 
 METHOD(kernel_interface_t, del_sa, status_t,
 	private_kernel_interface_t *this, host_t *src, host_t *dst, u_int32_t spi,
-	u_int8_t protocol, u_int16_t cpi, mark_t mark)
+	u_int8_t protocol, u_int32_t reqid, u_int16_t cpi, mark_t mark)
 {
 	if (!this->ipsec)
 	{
