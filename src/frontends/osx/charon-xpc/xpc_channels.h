@@ -25,6 +25,10 @@
 
 #include <xpc/xpc.h>
 
+#define host_t strongswan_host_t
+#define processor_t strongswan_processor_t
+#define task_t strongswan_task_t
+
 #include <bus/bus.h>
 
 typedef struct xpc_channels_t xpc_channels_t;

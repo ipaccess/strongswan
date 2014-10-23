@@ -23,6 +23,10 @@
 
 #include <xpc/xpc.h>
 
+#define host_t strongswan_host_t
+#define processor_t strongswan_processor_t
+#define task_t strongswan_task_t
+
 #include <daemon.h>
 
 typedef struct xpc_logger_t xpc_logger_t;
