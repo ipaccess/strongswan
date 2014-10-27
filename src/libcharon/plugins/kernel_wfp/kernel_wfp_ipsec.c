@@ -1875,9 +1875,8 @@ static void expire_data_destroy(expire_data_t *data)
 static job_requeue_t expire_job(expire_data_t *data)
 {
 	private_kernel_wfp_ipsec_t *this = data->this;
-	u_int32_t reqid = 0;
 	u_int8_t protocol;
-	entry_t *entry;
+	entry_t *entry = NULL;
 	sa_entry_t key = {
 		.spi = data->spi,
 		.dst = data->dst,
@@ -1891,7 +1890,6 @@ static job_requeue_t expire_job(expire_data_t *data)
 		if (entry)
 		{
 			protocol = entry->isa.protocol;
-			reqid = entry->reqid;
 			if (entry->osa.dst)
 			{
 				key.dst = entry->osa.dst;
@@ -1908,15 +1906,14 @@ static job_requeue_t expire_job(expire_data_t *data)
 		if (entry)
 		{
 			protocol = entry->isa.protocol;
-			reqid = entry->reqid;
 		}
 		this->mutex->unlock(this->mutex);
 	}
 
-	if (reqid)
+	if (entry)
 	{
 		hydra->kernel_interface->expire(hydra->kernel_interface,
-										reqid, protocol, data->spi, data->hard);
+										protocol, data->spi, data->hard);
 	}
 
 	return JOB_REQUEUE_NONE;
