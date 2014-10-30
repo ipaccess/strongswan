@@ -374,8 +374,7 @@ METHOD(parser_t, parse_payload, status_t,
 	encoding_rule_t *rule;
 
 	/* create instance of the payload to parse */
-	if (!this->major_version ||
-		payload_is_known(payload_type, this->major_version))
+	if (payload_is_known(payload_type, this->major_version))
 	{
 		pld = payload_create(payload_type);
 	}
