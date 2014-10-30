@@ -274,6 +274,7 @@ bool payload_is_known(payload_type_t type, u_int8_t maj_ver)
 	}
 	switch (maj_ver)
 	{
+		case 0:
 		case IKEV1_MAJOR_VERSION:
 			if (type >= PLV1_SECURITY_ASSOCIATION && type <= PLV1_CONFIGURATION)
 			{
@@ -287,7 +288,11 @@ bool payload_is_known(payload_type_t type, u_int8_t maj_ver)
 			{
 				return TRUE;
 			}
-			break;
+			if (maj_ver)
+			{
+				break;
+			}
+			/* fall-through */
 		case IKEV2_MAJOR_VERSION:
 			if (type >= PLV2_SECURITY_ASSOCIATION && type <= PLV2_EAP)
 			{

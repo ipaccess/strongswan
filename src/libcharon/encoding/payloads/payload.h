@@ -405,7 +405,7 @@ payload_t *payload_create(payload_type_t type);
  * Check if a specific payload is implemented, or handled as unknown payload.
  *
  * @param type		type of the payload to check
- * @param maj_ver	major IKE version
+ * @param maj_ver	major IKE version (use 0 to skip version check)
  * @return			FALSE if payload type handled as unknown payload
  */
 bool payload_is_known(payload_type_t type, u_int8_t maj_ver);
