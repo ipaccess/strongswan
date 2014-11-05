@@ -132,6 +132,7 @@ METHOD(radius_socket_t, request, radius_message_t*,
 	int i, *fd;
 	u_int16_t port;
 	rng_t *rng = NULL;
+	fd_set *fds;
 
 	if (request->get_code(request) == RMC_ACCOUNTING_REQUEST)
 	{
@@ -162,6 +163,8 @@ METHOD(radius_socket_t, request, radius_message_t*,
 	data = request->get_encoding(request);
 	DBG3(DBG_CFG, "%B", &data);
 
+	fds = FD_ALLOCA_MAX();
+
 	/* timeout after 2, 3, 4, 5 seconds */
 	for (i = 2; i <= 5; i++)
 	{
@@ -169,7 +172,6 @@ METHOD(radius_socket_t, request, radius_message_t*,
 		bool retransmit = FALSE;
 		struct timeval tv;
 		char buf[4096];
-		fd_set fds;
 		int res;
 
 		if (send(*fd, data.ptr, data.len, 0) != data.len)
@@ -182,9 +184,9 @@ METHOD(radius_socket_t, request, radius_message_t*,
 
 		while (TRUE)
 		{
-			FD_ZERO(&fds);
-			FD_SET(*fd, &fds);
-			res = select((*fd) + 1, &fds, NULL, NULL, &tv);
+			FD_ZEROA_MAX(fds);
+			FD_SET(*fd, fds);
+			res = select((*fd) + 1, fds, NULL, NULL, &tv);
 			/* TODO: updated tv to time not waited. Linux does this for us. */
 			if (res < 0)
 			{	/* failed */
