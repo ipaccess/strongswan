@@ -136,7 +136,7 @@ static int build_fds(private_socket_dynamic_socket_t *this, fd_set *fds)
 	dynsock_t *key, *value;
 	int maxfd;
 
-	FD_ZERO(fds);
+	FD_ZEROA_MAX(fds);
 	FD_SET(this->notify[0], fds);
 	maxfd = this->notify[0];
 
@@ -283,23 +283,25 @@ METHOD(socket_t, receiver, status_t,
 	dynsock_t *selected;
 	packet_t *pkt;
 	bool oldstate;
-	fd_set fds;
+	fd_set *fds;
 	int maxfd;
+
+	fds = FD_ALLOCA_MAX();
 
 	while (TRUE)
 	{
-		maxfd = build_fds(this, &fds);
+		maxfd = build_fds(this, fds);
 
 		DBG2(DBG_NET, "waiting for data on sockets");
 		oldstate = thread_cancelability(TRUE);
-		if (select(maxfd, &fds, NULL, NULL, NULL) <= 0)
+		if (select(maxfd, fds, NULL, NULL, NULL) <= 0)
 		{
 			thread_cancelability(oldstate);
 			return FAILED;
 		}
 		thread_cancelability(oldstate);
 
-		if (FD_ISSET(this->notify[0], &fds))
+		if (FD_ISSET(this->notify[0], fds))
 		{	/* got notified, read garbage, rebuild fdset */
 			char buf[1];
 
@@ -307,7 +309,7 @@ METHOD(socket_t, receiver, status_t,
 			DBG2(DBG_NET, "rebuilding fdset due to newly bound ports");
 			continue;
 		}
-		selected = scan_fds(this, &fds);
+		selected = scan_fds(this, fds);
 		if (selected)
 		{
 			break;
