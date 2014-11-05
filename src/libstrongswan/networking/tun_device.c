@@ -347,14 +347,15 @@ METHOD(tun_device_t, read_packet, bool,
 	private_tun_device_t *this, chunk_t *packet)
 {
 	ssize_t len;
-	fd_set set;
+	fd_set *set;
 	bool old;
 
-	FD_ZERO(&set);
-	FD_SET(this->tunfd, &set);
+	set = FD_ALLOCA(this->tunfd);
+	FD_ZEROA(set, this->tunfd);
+	FD_SET(this->tunfd, set);
 
 	old = thread_cancelability(TRUE);
-	len = select(this->tunfd + 1, &set, NULL, NULL, NULL);
+	len = select(this->tunfd + 1, set, NULL, NULL, NULL);
 	thread_cancelability(old);
 
 	if (len < 0)
