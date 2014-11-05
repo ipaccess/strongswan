@@ -214,27 +214,28 @@ static void handle_tuns(private_kernel_libipsec_router_t *this, fd_set *fds)
 static job_requeue_t handle_plain(private_kernel_libipsec_router_t *this)
 {
 	bool oldstate;
-	fd_set fds;
+	fd_set *fds;
 	int maxfd;
 
-	maxfd = collect_fds(this, &fds);
+	fds = FD_ALLOCA_MAX();
+	maxfd = collect_fds(this, fds);
 
 	oldstate = thread_cancelability(TRUE);
-	if (select(maxfd, &fds, NULL, NULL, NULL) <= 0)
+	if (select(maxfd, fds, NULL, NULL, NULL) <= 0)
 	{
 		thread_cancelability(oldstate);
 		return JOB_REQUEUE_FAIR;
 	}
 	thread_cancelability(oldstate);
 
-	if (FD_ISSET(this->notify[0], &fds))
+	if (FD_ISSET(this->notify[0], fds))
 	{	/* list of TUN devices changed, read notification data, rebuild FDs */
 		char buf[1];
 		while (read(this->notify[0], &buf, sizeof(buf)) == sizeof(buf));
 		return JOB_REQUEUE_DIRECT;
 	}
 
-	handle_tuns(this, &fds);
+	handle_tuns(this, fds);
 	return JOB_REQUEUE_DIRECT;
 }
 
