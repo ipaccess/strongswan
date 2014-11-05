@@ -153,58 +153,58 @@ METHOD(socket_t, receiver, status_t,
 	int bytes_read = 0;
 	bool oldstate;
 
-	fd_set rfds;
+	fd_set *rfds;
 	int max_fd = 0, selected = 0;
 	u_int16_t port = 0;
 
-	FD_ZERO(&rfds);
+	rfds = FD_ALLOCA_MAX();
 
 	if (this->ipv4 != -1)
 	{
-		FD_SET(this->ipv4, &rfds);
+		FD_SET(this->ipv4, rfds);
 		max_fd = max(max_fd, this->ipv4);
 	}
 	if (this->ipv4_natt != -1)
 	{
-		FD_SET(this->ipv4_natt, &rfds);
+		FD_SET(this->ipv4_natt, rfds);
 		max_fd = max(max_fd, this->ipv4_natt);
 	}
 	if (this->ipv6 != -1)
 	{
-		FD_SET(this->ipv6, &rfds);
+		FD_SET(this->ipv6, rfds);
 		max_fd = max(max_fd, this->ipv6);
 	}
 	if (this->ipv6_natt != -1)
 	{
-		FD_SET(this->ipv6_natt, &rfds);
+		FD_SET(this->ipv6_natt, rfds);
 		max_fd = max(max_fd, this->ipv6_natt);
 	}
 
 	DBG2(DBG_NET, "waiting for data on sockets");
 	oldstate = thread_cancelability(TRUE);
-	if (select(max_fd + 1, &rfds, NULL, NULL, NULL) <= 0)
+	if (select(max_fd + 1, rfds, NULL, NULL, NULL) <= 0)
 	{
 		thread_cancelability(oldstate);
 		return FAILED;
 	}
 	thread_cancelability(oldstate);
 
-	if (this->ipv4 != -1 && FD_ISSET(this->ipv4, &rfds))
+	if (this->ipv4 != -1 && FD_ISSET(this->ipv4, rfds))
 	{
 		port = this->port;
 		selected = this->ipv4;
 	}
-	if (this->ipv4_natt != -1 && FD_ISSET(this->ipv4_natt, &rfds))
+	if (this->ipv4_natt != -1 && FD_ISSET(this->ipv4_natt, rfds))
 	{
 		port = this->natt;
 		selected = this->ipv4_natt;
 	}
-	if (this->ipv6 != -1 && FD_ISSET(this->ipv6, &rfds))
+	if (this->ipv6 != -1 && FD_ISSET(this->ipv6, rfds))
 	{
 		port = this->port;
 		selected = this->ipv6;
 	}
-	if (this->ipv6_natt != -1 && FD_ISSET(this->ipv6_natt, &rfds))
+	if (this->ipv6_natt != -1 && FD_ISSET(this->ipv6_natt, rfds))
 	{
 		port = this->natt;
 		selected = this->ipv6_natt;
