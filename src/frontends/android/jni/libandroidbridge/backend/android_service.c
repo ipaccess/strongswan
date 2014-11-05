@@ -150,7 +150,7 @@ static job_requeue_t handle_plain(private_android_service_t *this)
 {
 	ip_packet_t *packet;
 	chunk_t raw;
-	fd_set set;
+	fd_set *set;
 	ssize_t len;
 	int tunfd;
 	bool old, dns_proxy;
@@ -159,8 +159,6 @@ static job_requeue_t handle_plain(private_android_service_t *this)
 		.tv_sec = 1,
 	};
 
-	FD_ZERO(&set);
-
 	this->lock->read_lock(this->lock);
 	if (this->tunfd < 0)
 	{	/* the TUN device is already closed */
@@ -168,13 +166,15 @@ static job_requeue_t handle_plain(private_android_service_t *this)
 		return JOB_REQUEUE_NONE;
 	}
 	tunfd = this->tunfd;
-	FD_SET(tunfd, &set);
+	set = FD_ALLOCA(tunfd);
+	FD_ZEROA(set, tunfd);
+	FD_SET(tunfd, set);
 	/* cache this while we have the lock */
 	dns_proxy = this->use_dns_proxy;
 	this->lock->unlock(this->lock);
 
 	old = thread_cancelability(TRUE);
-	len = select(tunfd + 1, &set, NULL, NULL, &tv);
+	len = select(tunfd + 1, set, NULL, NULL, &tv);
 	thread_cancelability(old);
 
 	if (len < 0)
