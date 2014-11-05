@@ -251,13 +251,16 @@ static job_requeue_t watch(private_watcher_t *this)
 {
 	enumerator_t *enumerator;
 	entry_t *entry;
-	fd_set rd, wr, ex;
+	fd_set *rd, *wr, *ex;
 	int maxfd = 0, res;
 	bool rebuild = FALSE;
 
-	FD_ZERO(&rd);
-	FD_ZERO(&wr);
-	FD_ZERO(&ex);
+	rd = FD_ALLOCA_MAX();
+	wr = FD_ALLOCA_MAX();
+	ex = FD_ALLOCA_MAX();
+	FD_ZEROA_MAX(rd);
+	FD_ZEROA_MAX(wr);
+	FD_ZEROA_MAX(ex);
 
 	this->mutex->lock(this->mutex);
 
@@ -274,7 +277,7 @@ static job_requeue_t watch(private_watcher_t *this)
 
 	if (this->notify[0] != -1)
 	{
-		FD_SET(this->notify[0], &rd);
+		FD_SET(this->notify[0], rd);
 		maxfd = this->notify[0];
 	}
 
@@ -286,17 +289,17 @@ static job_requeue_t watch(private_watcher_t *this)
 			if (entry->events & WATCHER_READ)
 			{
 				DBG3(DBG_JOB, "  watching %d for reading", entry->fd);
-				FD_SET(entry->fd, &rd);
+				FD_SET(entry->fd, rd);
 			}
 			if (entry->events & WATCHER_WRITE)
 			{
 				DBG3(DBG_JOB, "  watching %d for writing", entry->fd);
-				FD_SET(entry->fd, &wr);
+				FD_SET(entry->fd, wr);
 			}
 			if (entry->events & WATCHER_EXCEPT)
 			{
 				DBG3(DBG_JOB, "  watching %d for exceptions", entry->fd);
-				FD_SET(entry->fd, &ex);
+				FD_SET(entry->fd, ex);
 			}
 			maxfd = max(maxfd, entry->fd);
 		}
@@ -315,13 +318,13 @@ static job_requeue_t watch(private_watcher_t *this)
 		thread_cleanup_push((void*)activate_all, this);
 		old = thread_cancelability(TRUE);
 
-		res = select(maxfd + 1, &rd, &wr, &ex, NULL);
+		res = select(maxfd + 1, rd, wr, ex, NULL);
 		thread_cancelability(old);
 		thread_cleanup_pop(FALSE);
 
 		if (res > 0)
 		{
-			if (this->notify[0] != -1 && FD_ISSET(this->notify[0], &rd))
+			if (this->notify[0] != -1 && FD_ISSET(this->notify[0], rd))
 			{
 				while (TRUE)
 				{
@@ -354,17 +357,17 @@ static job_requeue_t watch(private_watcher_t *this)
 					rebuild = TRUE;
 					break;
 				}
-				if (FD_ISSET(entry->fd, &rd) && (entry->events & WATCHER_READ))
+				if (FD_ISSET(entry->fd, rd) && (entry->events & WATCHER_READ))
 				{
 					DBG2(DBG_JOB, "watched FD %d ready to read", entry->fd);
 					notify(this, entry, WATCHER_READ);
 				}
-				if (FD_ISSET(entry->fd, &wr) && (entry->events & WATCHER_WRITE))
+				if (FD_ISSET(entry->fd, wr) && (entry->events & WATCHER_WRITE))
 				{
 					DBG2(DBG_JOB, "watched FD %d ready to write", entry->fd);
 					notify(this, entry, WATCHER_WRITE);
 				}
-				if (FD_ISSET(entry->fd, &ex) && (entry->events & WATCHER_EXCEPT))
+				if (FD_ISSET(entry->fd, ex) && (entry->events & WATCHER_EXCEPT))
 				{
 					DBG2(DBG_JOB, "watched FD %d has exception", entry->fd);
 					notify(this, entry, WATCHER_EXCEPT);
