@@ -291,25 +291,29 @@ METHOD(tls_socket_t, splice, bool,
 	private_tls_socket_t *this, int rfd, int wfd)
 {
 	char buf[PLAIN_BUF_SIZE], *pos;
-	fd_set set;
+	fd_set *set;
 	ssize_t in, out;
 	bool old, plain_eof = FALSE, crypto_eof = FALSE;
+	int maxfd;
+
+	maxfd = max(rfd, this->fd);
+	set = FD_ALLOCA(maxfd);
 
 	while (!plain_eof && !crypto_eof)
 	{
-		FD_ZERO(&set);
-		FD_SET(rfd, &set);
-		FD_SET(this->fd, &set);
+		FD_ZEROA(set, maxfd);
+		FD_SET(rfd, set);
+		FD_SET(this->fd, set);
 
 		old = thread_cancelability(TRUE);
-		in = select(max(rfd, this->fd) + 1, &set, NULL, NULL, NULL);
+		in = select(maxfd + 1, set, NULL, NULL, NULL);
 		thread_cancelability(old);
 		if (in == -1)
 		{
 			DBG1(DBG_TLS, "TLS select error: %s", strerror(errno));
 			return FALSE;
 		}
-		while (!plain_eof && FD_ISSET(this->fd, &set))
+		while (!plain_eof && FD_ISSET(this->fd, set))
 		{
 			in = read_(this, buf, sizeof(buf), FALSE);
 			switch (in)
@@ -342,7 +346,7 @@ METHOD(tls_socket_t, splice, bool,
 			}
 			break;
 		}
-		if (!crypto_eof && FD_ISSET(rfd, &set))
+		if (!crypto_eof && FD_ISSET(rfd, set))
 		{
 			in = read(rfd, buf, sizeof(buf));
 			switch (in)
