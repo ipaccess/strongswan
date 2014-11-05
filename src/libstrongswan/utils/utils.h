@@ -682,6 +682,47 @@ void closefrom(int lowfd);
 #endif
 
 /**
+ * Get the maximum number of file descriptors open
+ *
+ * @return			maximum number of file descriptors
+ */
+int get_max_fd();
+
+/**
+ * Allocate a sized fd_set on the stack.
+ *
+ * @note Do not use FD_ZERO on the resulting set, use FD_ZEROA.
+ *
+ * @param fd		highest file descriptor that gets added
+ * @return			fd set on stack
+ */
+#define FD_ALLOCA(fd) alloca(round_up(fd + 1, 8) / 8)
+
+/**
+ * Clear a fd_set previously allocated with FD_ALLOCA
+ *
+ * @param set		fd_set, allocated by FD_ALLOCA
+ * @param fd		highest file descriptor, as passed to FD_ALLOCA
+ */
+#define FD_ZEROA(set, fd) memset(set, 0, round_up(fd + 1, 8) / 8)
+
+/**
+ * Allocate and clear a dynamically sized fd_set on the stack.
+ *
+ * @note Do not use FD_ZERO on the resulting set, use FD_ZEROA_MAX.
+ *
+ * @return			fd set on stack
+ */
+#define FD_ALLOCA_MAX() FD_ALLOCA(get_max_fd())
+
+/**
+ * Clear a fd_set previously allocated with FD_ALLOCA_MAX
+ *
+ * @param set		fd_set, allocated by FD_ALLOCA_MAX
+ */
+#define FD_ZEROA_MAX(set) FD_ZEROA(set, get_max_fd())
+
+/**
  * Get a timestamp from a monotonic time source.
  *
  * While the time()/gettimeofday() functions are affected by leap seconds

@@ -546,11 +546,7 @@ void closefrom(int lowfd)
 	}
 
 	/* ...fall back to closing all fds otherwise */
-#ifdef WIN32
-	maxfd = _getmaxstdio();
-#else
-	maxfd = (int)sysconf(_SC_OPEN_MAX);
-#endif
+	maxfd = get_max_fd();
 	if (maxfd < 0)
 	{
 		maxfd = 256;
@@ -561,6 +557,18 @@ void closefrom(int lowfd)
 	}
 }
 #endif /* HAVE_CLOSEFROM */
+
+/**
+ * See header.
+ */
+int get_max_fd()
+{
+#ifdef WIN32
+	return _getmaxstdio();
+#else
+	return (int)sysconf(_SC_OPEN_MAX);
+#endif
+}
 
 /**
  * Return monotonic time
