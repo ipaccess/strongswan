@@ -21,11 +21,6 @@
 #ifndef THREADING_SEMAPHORE_H_
 #define THREADING_SEMAPHORE_H_
 
-#ifdef __APPLE__
-/* Mach uses a semaphore_create() call, use a different name for ours */
-#define semaphore_create(x) strongswan_semaphore_create(x)
-#endif /* __APPLE__ */
-
 typedef struct semaphore_t semaphore_t;
 
 /**
@@ -87,4 +82,3 @@ struct semaphore_t {
 semaphore_t *semaphore_create(u_int value);
 
 #endif /** THREADING_SEMAPHORE_H_ @} */
-
