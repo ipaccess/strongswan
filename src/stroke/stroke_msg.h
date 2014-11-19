@@ -303,6 +303,10 @@ struct stroke_msg_t {
 				u_int32_t value;
 				u_int32_t mask;
 			} mark_in, mark_out;
+
+                        u_int retransmit_timer;
+                        u_int retransmit_count;
+
 			stroke_end_t me, other;
 			u_int32_t replay_window;
 		} add_conn;
