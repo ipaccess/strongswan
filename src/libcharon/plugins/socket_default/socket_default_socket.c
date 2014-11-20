@@ -529,6 +529,7 @@ static int open_socket(private_socket_default_socket_t *this,
 	socklen_t addrlen;
 	u_int sol, pktinfo = 0;
 	int skt;
+      	int tos;
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sockaddr.sa_family = family;
@@ -569,6 +570,23 @@ static int open_socket(private_socket_default_socket_t *this,
 		close(skt);
 		return -1;
 	}
+
+        /* disbale the UDP checksum */ 
+        if (setsockopt(skt, SOL_SOCKET, SO_NO_CHECK, (void*)&on, sizeof(on)) < 0)
+        { 
+               DBG1(DBG_NET, "unable to set SO_NO_CHECK on socket: %s", strerror(errno));
+               close(skt);
+               return 0;
+        }
+
+        /* read DSCP value out of configuration file, default to 0 */
+        tos = (lib->settings->get_int(lib->settings,
+                                       "charon.ike_dscp", 0) << 2) & 0xfc;
+        if (setsockopt(skt, sol, IP_TOS, &tos, sizeof(tos)))
+        {
+                DBG1(DBG_NET, "unable to set IP_TOS: %s", strerror(errno));
+        }
+
 
 	/* bind the socket */
 	if (bind(skt, &addr.sockaddr, addrlen) < 0)
