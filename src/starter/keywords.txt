@@ -60,8 +60,6 @@ ah,                KW_AH
 dpddelay,          KW_DPDDELAY
 dpdtimeout,        KW_DPDTIMEOUT
 dpdaction,         KW_DPDACTION
-retransmit_timer,  KW_RETRANSMIT_TIMER
-retransmit_count,  KW_RETRANSMIT_COUNT
 closeaction,       KW_CLOSEACTION
 inactivity,        KW_INACTIVITY
 modeconfig,        KW_MODECONFIG
