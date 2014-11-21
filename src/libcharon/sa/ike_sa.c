@@ -72,6 +72,26 @@ ENUM(ike_sa_state_names, IKE_CREATED, IKE_DESTROYING,
 	"DELETING",
 	"DESTROYING",
 );
+#if 1
+ENUM(ike_failure_names, IKE_FAILURE_NONE, IKE_FAILURE_PEER_AUTH,
+	"NONE",
+	"PEER_CERT_INVALID",
+	"PEER_CHAIN_INVALID",
+	"OWN_CERT_REJECTED",
+	"REVOKED_BY_CRL",
+	"NOT_TRUSTED",
+	"CRL_UNAVAILABLE",
+	"UNABLE_TO_CONNECT",
+	"NO_INIT_RESPONSE",
+	"NO_AUTH_RESPONSE",
+	"DPD",
+	"NOTIFY_FAILURE",
+	"UNACCEPTABLE_PEER_ID",
+	"ID_PAYLOAD_MISSING",
+	"PEER_AUTH"
+);
+#endif
+
 
 typedef struct private_ike_sa_t private_ike_sa_t;
 typedef struct attribute_entry_t attribute_entry_t;
@@ -278,6 +298,12 @@ struct private_ike_sa_t {
 	 * Maximum length of a single fragment, 0 for address-specific defaults
 	 */
 	size_t fragment_size;
+
+	/**
+	 * last recorded failure cause for this IKE SA
+	 */
+	ike_failure_t failure;
+
 };
 
 /**
@@ -743,6 +769,27 @@ METHOD(ike_sa_t, set_state, void,
 		}
 	}
 }
+#if 1
+/**
+ * Implementation of ike_sa_t.set_failure
+ */
+METHOD(ike_sa_t, set_failure, void,
+	private_ike_sa_t *this, ike_failure_t failure)
+{
+	DBG2(DBG_IKE, "setting failure reason to %d", failure);
+	this->failure = failure;
+}
+
+/**
+ * Implementation of ike_sa_t.get_failure
+ */
+METHOD(ike_sa_t, get_failure, void,
+	private_ike_sa_t *this )
+{
+	return this->failure;
+}
+
+#endif
 
 METHOD(ike_sa_t, reset, void,
 	private_ike_sa_t *this)
@@ -754,6 +801,9 @@ METHOD(ike_sa_t, reset, void,
 	}
 
 	set_state(this, IKE_CREATED);
+#if 1
+	set_failure(this, IKE_FAILURE_NONE);
+#endif
 
 	flush_auth_cfgs(this);
 
@@ -1872,6 +1922,8 @@ METHOD(ike_sa_t, retransmit, status_t,
 				charon->bus->alert(charon->bus, ALERT_PEER_INIT_UNREACHABLE,
 								   this->keyingtry);
 				this->keyingtry++;
+				set_failure(this, message_id==0?IKE_FAILURE_NO_INIT_RESPONSE:
+				                                IKE_FAILURE_NO_AUTH_RESPONSE);
 				if (tries == 0 || tries > this->keyingtry)
 				{
 					DBG1(DBG_IKE, "peer not responding, trying again (%d/%d)",
@@ -1897,6 +1949,7 @@ METHOD(ike_sa_t, retransmit, status_t,
 				DBG1(DBG_IKE, "rekeying IKE_SA failed, peer not responding");
 				/* FALL */
 			default:
+				set_failure(this, IKE_FAILURE_DPD);
 				reestablish(this);
 				break;
 		}
@@ -2464,6 +2517,10 @@ ike_sa_t * ike_sa_create(ike_sa_id_t *ike_sa_id, bool initiator,
 			.add_configuration_attribute = _add_configuration_attribute,
 			.create_attribute_enumerator = _create_attribute_enumerator,
 			.set_kmaddress = _set_kmaddress,
+#if 1
+                        .set_failure = _set_failure,
+                        .get_failure = _get_failure,
+#endif
 			.create_task_enumerator = _create_task_enumerator,
 			.flush_queue = _flush_queue,
 			.queue_task = _queue_task,
@@ -2487,6 +2544,7 @@ ike_sa_t * ike_sa_create(ike_sa_id_t *ike_sa_id, bool initiator,
 		.other_id = identification_create_from_encoding(ID_ANY, chunk_empty),
 		.keymat = keymat_create(version, initiator),
 		.state = IKE_CREATED,
+                .failure = IKE_FAILURE_NONE,
 		.stats[STAT_INBOUND] = time_monotonic(NULL),
 		.stats[STAT_OUTBOUND] = time_monotonic(NULL),
 		.my_auth = auth_cfg_create(),

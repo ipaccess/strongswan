@@ -525,6 +525,18 @@ METHOD(task_t, process_i, status_t,
 							 notify_type_names, type);
 						enumerator->destroy(enumerator);
 						raise_alerts(this, type);
+#if 1
+						if (type == AUTHENTICATION_FAILED)
+						{
+							this->ike_sa->set_failure(this->ike_sa,
+										IKE_FAILURE_OWN_CERT_REJECTED);
+						}
+						else
+						{
+							this->ike_sa->set_failure(this->ike_sa,
+										IKE_FAILURE_NOTIFY_FAILURE);
+						}
+#endif
 						return FAILED;
 					}
 					DBG2(DBG_IKE, "received %N notify",

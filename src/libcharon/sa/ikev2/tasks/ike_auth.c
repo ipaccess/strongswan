@@ -562,6 +562,8 @@ METHOD(task_t, process_r, status_t,
 		if (!id_payload)
 		{
 			DBG1(DBG_IKE, "IDi payload missing");
+		        this->ike_sa->set_failure(this->ike_sa, 
+                                                  IKE_FAILURE_ID_PAYLOAD_MISSING);
 			return FAILED;
 		}
 		id = id_payload->get_identification(id_payload);
@@ -936,6 +938,19 @@ METHOD(task_t, process_i, status_t,
 							 notify_type_names, type);
 						enumerator->destroy(enumerator);
 						charon->bus->alert(charon->bus, ALERT_LOCAL_AUTH_FAILED);
+#if 1
+						if (type == AUTHENTICATION_FAILED)
+						{
+							this->ike_sa->set_failure(this->ike_sa,
+										IKE_FAILURE_OWN_CERT_REJECTED);
+						}
+						else
+						{
+							this->ike_sa->set_failure(this->ike_sa,
+										IKE_FAILURE_NOTIFY_FAILURE);
+						}
+#endif
+
 						return FAILED;
 					}
 					DBG2(DBG_IKE, "received %N notify",

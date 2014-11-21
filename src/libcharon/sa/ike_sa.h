@@ -28,6 +28,9 @@ typedef enum ike_extension_t ike_extension_t;
 typedef enum ike_condition_t ike_condition_t;
 typedef enum ike_sa_state_t ike_sa_state_t;
 typedef enum statistic_t statistic_t;
+#if 1
+typedef enum ike_failure_t ike_failure_t;
+#endif
 typedef struct ike_sa_t ike_sa_t;
 
 #include <library.h>
@@ -213,6 +216,48 @@ enum statistic_t {
 
 	STAT_MAX
 };
+
+/**
+ * Definitions for types of failure with an IKE SA
+ */
+enum ike_failure_t {
+	/** no failure */
+	IKE_FAILURE_NONE,
+	/** peer certificate is not valid */
+	IKE_FAILURE_PEER_CERT_INVALID,
+	/** peer certificate chain is not valid */
+	IKE_FAILURE_PEER_CHAIN_INVALID,
+	/** peer rejected our certificate (received AUTH_FAILED notify error) */
+	IKE_FAILURE_OWN_CERT_REJECTED,
+	/** peer certificate has been revoked */
+	IKE_FAILURE_REVOKED_BY_CRL,
+	/** peer certificate does not match trust anchors */
+	IKE_FAILURE_NOT_TRUSTED,
+	/** failed to fetch CRL file and CRLs are strictly required */
+	IKE_FAILURE_CRL_UNAVAILABLE,
+	/** generic connection failure */
+	IKE_FAILURE_UNABLE_TO_CONNECT,
+	/** no response received to IKE_INIT message */
+	IKE_FAILURE_NO_INIT_RESPONSE,
+	/** no response received to IKE_AUTH message */
+	IKE_FAILURE_NO_AUTH_RESPONSE,
+	/** dead peer detected */
+	IKE_FAILURE_DPD,
+	/** generic notify error received (see notify_payload.h) */
+	IKE_FAILURE_NOTIFY_FAILURE,
+	/** peer's identification is not acceptable */
+	IKE_FAILURE_UNACCEPTABLE_PEER_ID,
+	/** ID payload is missing from the IKE_AUTH response */
+	IKE_FAILURE_ID_PAYLOAD_MISSING,
+	/** generic peer authentication failure */
+	IKE_FAILURE_PEER_AUTH
+};
+
+/**
+ * enum names for ike_failure_t.
+ */
+extern enum_name_t *ike_failure_names;
+
 
 /**
  * State of an IKE_SA.
@@ -1060,6 +1105,21 @@ struct ike_sa_t {
 	 * @param other			other IKE_SA to inherit from
 	 */
 	void (*inherit_pre)(ike_sa_t *this, ike_sa_t *other);
+
+
+	/**
+	 * Set cause of failure which occured on this IKE_SA
+	 * 
+	 * @param failure		failure cause
+	 */
+	void (*set_failure) (ike_sa_t *this, ike_failure_t failure);
+
+	/**
+	 * Returns the latest failure cause for this IKE_SA
+	 * 
+	 * @return 			failure cause
+	 */
+	ike_failure_t (*get_failure) (ike_sa_t *this);
 
 	/**
 	 * Inherit all attributes of other to this after rekeying.
