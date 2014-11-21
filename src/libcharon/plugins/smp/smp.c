@@ -132,8 +132,6 @@ ENUM(ike_sa_state_lower_names, IKE_CREATED, IKE_DESTROYING,
 	"destroying"
 );
 
-#if 1
-
 typedef struct smp_fetcher_t smp_fetcher_t;
 
 /**
