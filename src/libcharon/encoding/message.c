@@ -15,6 +15,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
+ *
+ * Modified by ip.access ltd 
+ * Copyright (c) 2009-2014 ip.access ltd 
+ * $Id: patches/charon/encoding/message.c 1.3 2009/05/20 12:54:27BST Mark Powell (mp3) Exp  $
  */
 
 #include <stdlib.h>
@@ -1673,7 +1677,7 @@ static status_t generate_message(private_message_t *this, keymat_t *keymat,
 		enumerator->destroy(enumerator);
 	}
 
-	DBG1(DBG_ENC, "generating %s", get_string(this, str, sizeof(str)));
+	DBG2(DBG_ENC, "generating %s", get_string(this, str, sizeof(str)));
 
 	if (keymat)
 	{
@@ -2581,7 +2585,7 @@ METHOD(message_t, parse_body, status_t,
 		return status;
 	}
 
-	DBG1(DBG_ENC, "parsed %s", get_string(this, str, sizeof(str)));
+	DBG2(DBG_ENC, "parsed %s", get_string(this, str, sizeof(str)));
 
 	if (keymat && keymat->get_version(keymat) == IKEV1)
 	{
