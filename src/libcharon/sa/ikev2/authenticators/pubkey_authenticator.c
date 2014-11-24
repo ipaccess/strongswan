@@ -114,7 +114,8 @@ METHOD(authenticator_t, build, status_t,
 	keymat = (keymat_v2_t*)this->ike_sa->get_keymat(this->ike_sa);
 	if (keymat->get_auth_octets(keymat, FALSE, this->ike_sa_init,
 								this->nonce, id, this->reserved, &octets) &&
-		private->sign(private, scheme, octets, &auth_data))
+		(private->sign(private, scheme, octets, &auth_data) 
+		|| private->sign(private, SIGN_RSA_EMSA_PKCS1_SHA256, octets, &auth_data) ))
 	{
 		auth_payload = auth_payload_create();
 		auth_payload->set_auth_method(auth_payload, auth_method);
@@ -186,7 +187,9 @@ METHOD(authenticator_t, process, status_t,
 														key_type, id, auth);
 	while (enumerator->enumerate(enumerator, &public, &current_auth))
 	{
-		if (public->verify(public, scheme, octets, auth_data))
+
+		if (public->verify(public, scheme, octets, auth_data) ||
+			public->verify(public, SIGN_RSA_EMSA_PKCS1_SHA256, octets, auth_data) )
 		{
 			DBG1(DBG_IKE, "authentication of '%Y' with %N successful",
 						   id, auth_method_names, auth_method);
