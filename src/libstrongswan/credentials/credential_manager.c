@@ -12,7 +12,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
  */
-
+ 
+/* Modified by ip.access ltd 
+ * Copyright (c) 2009-2014 ip.access ltd 
+ */
+ 
 #include "credential_manager.h"
 
 #include <library.h>
@@ -727,9 +731,9 @@ static bool verify_trust_chain(private_credential_manager_t *this,
 		issuer = get_issuer_cert(this, current, TRUE, &scheme);
 		if (issuer)
 		{
-			/* accept only self-signed CAs as trust anchor */
 			if (issued_by(this, issuer, issuer, NULL))
 			{
+				/* accept self-signed CAs as trust anchor */
 				auth->add(auth, AUTH_RULE_CA_CERT, issuer->get_ref(issuer));
 				DBG1(DBG_CFG, "  using trusted ca certificate \"%Y\"",
 							  issuer->get_subject(issuer));
@@ -737,9 +741,11 @@ static bool verify_trust_chain(private_credential_manager_t *this,
 			}
 			else
 			{
+				/* also accept intermediate CAs as trust anchor */
 				auth->add(auth, AUTH_RULE_IM_CERT, issuer->get_ref(issuer));
 				DBG1(DBG_CFG, "  using trusted intermediate ca certificate "
 					 "\"%Y\"", issuer->get_subject(issuer));
+				trusted = TRUE;
 			}
 			auth->add(auth, AUTH_RULE_SIGNATURE_SCHEME, scheme);
 		}
