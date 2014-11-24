@@ -13,6 +13,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
+ *
+ * Modified by ip.access ltd 
+ * Copyright (c) 2009 ip.access ltd 
+ * $Id: patches/charon/config/peer_cfg.c 1.3 2009/11/27 14:15:27GMT Stuart Haslam (sh6) Exp  $
  */
 
 #include <string.h>
@@ -130,6 +134,16 @@ struct private_peer_cfg_t {
 	 */
 	u_int32_t dpd;
 
+	/**
+	* IKEv2 retransmission timer
+	*/
+	u_int32_t retransmit_timer;
+	
+	/**
+	* IKEv2 retransmission count
+	*/
+	u_int32_t retransmit_count;
+	
 	/**
 	 * DPD timeout intervall (used for IKEv1 only)
 	 */
@@ -414,6 +428,18 @@ METHOD(peer_cfg_t, get_dpd_timeout, u_int32_t,
 	return this->dpd_timeout;
 }
 
+METHOD(peer_cfg_t, get_retransmit_timer, u_int32_t,
+	private_peer_cfg_t *this)
+{
+	return this->retransmit_timer;
+}
+
+METHOD(peer_cfg_t, get_retransmit_count, u_int32_t,
+	private_peer_cfg_t *this)
+{
+	return this->retransmit_count;
+}
+
 METHOD(peer_cfg_t, add_virtual_ip, void,
 	private_peer_cfg_t *this, host_t *vip)
 {
@@ -653,6 +679,7 @@ peer_cfg_t *peer_cfg_create(char *name,
 							u_int32_t jitter_time, u_int32_t over_time,
 							bool mobike, bool aggressive, bool pull_mode,
 							u_int32_t dpd, u_int32_t dpd_timeout,
+							u_int32_t retransmit_timer, u_int32_t retransmit_count,
 							bool mediation, peer_cfg_t *mediated_by,
 							identification_t *peer_id)
 {
@@ -687,6 +714,8 @@ peer_cfg_t *peer_cfg_create(char *name,
 			.use_pull_mode = _use_pull_mode,
 			.get_dpd = _get_dpd,
 			.get_dpd_timeout = _get_dpd_timeout,
+			.get_retransmit_timer =_get_retransmit_timer,
+			.get_retransmit_count = _get_retransmit_count,
 			.add_virtual_ip = _add_virtual_ip,
 			.create_virtual_ip_enumerator = _create_virtual_ip_enumerator,
 			.add_pool = _add_pool,
@@ -718,6 +747,8 @@ peer_cfg_t *peer_cfg_create(char *name,
 		.pull_mode = pull_mode,
 		.dpd = dpd,
 		.dpd_timeout = dpd_timeout,
+		.retransmit_timer = retransmit_timer,
+		.retransmit_count = retransmit_count,
 		.vips = linked_list_create(),
 		.pools = linked_list_create(),
 		.local_auth = linked_list_create(),

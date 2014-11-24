@@ -13,6 +13,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  * for more details.
+ *
+ * Modified by ip.access ltd 
+ * Copyright (c) 2009 ip.access ltd 
+ * $Id: patches/charon/config/peer_cfg.h 1.2 2009/05/20 12:54:26BST Mark Powell (mp3) Exp  $
  */
 
 /**
@@ -269,6 +273,20 @@ struct peer_cfg_t {
 	u_int32_t (*get_dpd_timeout) (peer_cfg_t *this);
 
 	/**
+	 * Get the IKEv2 retransmission timer.
+	 *
+	 * @return			retransmit_timer in seconds
+	 */
+	u_int32_t (*get_retransmit_timer) (peer_cfg_t *this);
+
+	/**
+	 * Get the IKEv2 retransmission count.
+	 *
+	 * @return			retransmit_count
+	 */
+	u_int32_t (*get_retransmit_count) (peer_cfg_t *this);
+
+	/**
 	 * Add a virtual IP to request as initiator.
 	 *
 	 * @param vip			virtual IP to request, may be %any or %any6
@@ -376,6 +394,8 @@ struct peer_cfg_t {
  * @param pull_mode			TRUE to use modeconfig pull, FALSE for push
  * @param dpd				DPD check interval, 0 to disable
  * @param dpd_timeout		DPD timeout interval (IKEv1 only), if 0 default applies
+ * @param retransmit_timer	IKEv2 retransmission timer
+ * @param retransmit_count	IKEv2 retransmission count
  * @param mediation			TRUE if this is a mediation connection
  * @param mediated_by		peer_cfg_t of the mediation connection to mediate through
  * @param peer_id			ID that identifies our peer at the mediation server
@@ -388,6 +408,7 @@ peer_cfg_t *peer_cfg_create(char *name,
 							u_int32_t jitter_time, u_int32_t over_time,
 							bool mobike, bool aggressive, bool pull_mode,
 							u_int32_t dpd, u_int32_t dpd_timeout,
+							u_int32_t retransmit_timer, u_int32_t retransmit_count,
 							bool mediation, peer_cfg_t *mediated_by,
 							identification_t *peer_id);
 
