@@ -495,6 +495,7 @@ METHOD(bus_t, ike_state_change, void,
 		if (!keep)
 		{
 			unregister_listener(this, entry, enumerator);
+			break;
 		}
 	}
 	enumerator->destroy(enumerator);
@@ -526,6 +527,7 @@ METHOD(bus_t, child_state_change, void,
 		if (!keep)
 		{
 			unregister_listener(this, entry, enumerator);
+			break;
 		}
 	}
 	enumerator->destroy(enumerator);
@@ -557,6 +559,7 @@ METHOD(bus_t, message, void,
 		if (!keep)
 		{
 			unregister_listener(this, entry, enumerator);
+			break;
 		}
 	}
 	enumerator->destroy(enumerator);
@@ -587,6 +590,7 @@ METHOD(bus_t, ike_keys, void,
 		if (!keep)
 		{
 			unregister_listener(this, entry, enumerator);
+			break;
 		}
 	}
 	enumerator->destroy(enumerator);
@@ -619,6 +623,7 @@ METHOD(bus_t, child_keys, void,
 		if (!keep)
 		{
 			unregister_listener(this, entry, enumerator);
+			break;
 		}
 	}
 	enumerator->destroy(enumerator);
