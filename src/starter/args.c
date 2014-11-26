@@ -163,6 +163,8 @@ static const token_info_t token_info[] =
 	{ ARG_TIME, offsetof(starter_conn_t, dpd_delay), NULL                          },
 	{ ARG_TIME, offsetof(starter_conn_t, dpd_timeout), NULL                        },
 	{ ARG_ENUM, offsetof(starter_conn_t, dpd_action), LST_dpd_action               },
+	{ ARG_UINT, offsetof(starter_conn_t, retransmit_timer), NULL                   },
+    	{ ARG_UINT, offsetof(starter_conn_t, retransmit_count), NULL                   },
 	{ ARG_ENUM, offsetof(starter_conn_t, close_action), LST_dpd_action             },
 	{ ARG_TIME, offsetof(starter_conn_t, inactivity), NULL                         },
 	{ ARG_MISC, 0, NULL  /* KW_MODECONFIG */                                       },

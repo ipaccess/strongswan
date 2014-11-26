@@ -69,6 +69,8 @@ mediation,         KW_MEDIATION
 mediated_by,       KW_MEDIATED_BY
 me_peerid,         KW_ME_PEERID
 reqid,             KW_REQID
+retransmit_timer,  KW_RETRANSMIT_TIMER
+retransmit_count,  KW_RETRANSMIT_COUNT
 replay_window,     KW_REPLAY_WINDOW
 mark,              KW_MARK
 mark_in,           KW_MARK_IN

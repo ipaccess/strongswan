@@ -163,12 +163,12 @@ struct starter_conn {
 
 		time_t          inactivity;
 
-	        u_int           retransmit_timer;
-	        u_int           retransmit_count;
-
 		bool            me_mediation;
 		char            *me_mediated_by;
 		char            *me_peerid;
+
+	        u_int           retransmit_timer;
+	        u_int           retransmit_count;
 
 		starter_conn_t *next;
 };
