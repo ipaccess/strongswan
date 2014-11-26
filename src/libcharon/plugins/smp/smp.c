@@ -1301,7 +1301,10 @@ static void process_single(int fd, char *buffer_in, size_t len)
 	char *id = NULL, *type = NULL;
 	char *buffer = NULL;
 	
-	DBG3(DBG_CFG, "got XML request: %b", buffer, len);
+	if(buffer_in)
+	{
+	    DBG3(DBG_CFG, "got XML request: %b", buffer_in, len);
+	}
 
 	/* Since requests are queued and the processing of the XML is
 	 * deferred, we have to provide access to the buffer and the reader
