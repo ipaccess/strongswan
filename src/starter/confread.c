@@ -250,6 +250,9 @@ static void conn_defaults(starter_conn_t *conn)
 
 	conn->left.to_port = 0xffff;
 	conn->right.to_port = 0xffff;
+
+	conn->retransmit_timer	= 10; /* seconds */
+	conn->retransmit_count	= 2;
 }
 
 /*
