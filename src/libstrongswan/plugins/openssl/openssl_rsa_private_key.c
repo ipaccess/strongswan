@@ -484,7 +484,7 @@ static bool login(ENGINE *engine, chunk_t keyid)
 		{
 			continue;
 		}
-		if (ENGINE_ctrl_cmd_string(engine, "PIN", pin, 0))
+		if (ENGINE_ctrl_cmd_string(engine, "PIN", pin, 1))
 		{
 			success = TRUE;
 			break;
@@ -558,7 +558,7 @@ openssl_rsa_private_key_t *openssl_rsa_private_key_connect(key_type_t type,
 	if (!engine_id)
 	{
 		engine_id = lib->settings->get_str(lib->settings,
-							"%s.plugins.openssl.engine_id", "pkcs11", lib->ns);
+							"%s.plugins.openssl.engine_id", "aprsa", lib->ns);
 	}
 	engine = ENGINE_by_id(engine_id);
 	if (!engine)
