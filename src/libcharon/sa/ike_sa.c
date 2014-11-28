@@ -535,7 +535,7 @@ METHOD(ike_sa_t, send_keepalive, void,
 		data.ptr[0] = 0xFF;
 		data.len = 1;
 		packet->set_data(packet, data);
-		DBG1(DBG_IKE, "sending keep alive to %#H", this->other_host);
+		DBG2(DBG_IKE, "sending keep alive to %#H", this->other_host);
 		charon->sender->send_no_marker(charon->sender, packet);
 		diff = 0;
 	}
@@ -649,7 +649,7 @@ METHOD(ike_sa_t, send_dpd, status_t,
 		if (!delay || diff >= delay)
 		{
 			/* too long ago, initiate dead peer detection */
-			DBG1(DBG_IKE, "sending DPD request");
+			DBG2(DBG_IKE, "sending DPD request");
 			this->task_manager->queue_dpd(this->task_manager);
 			task_queued = TRUE;
 			diff = 0;
