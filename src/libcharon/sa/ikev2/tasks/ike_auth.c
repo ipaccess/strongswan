@@ -938,7 +938,7 @@ METHOD(task_t, process_i, status_t,
 							 notify_type_names, type);
 						enumerator->destroy(enumerator);
 						charon->bus->alert(charon->bus, ALERT_LOCAL_AUTH_FAILED);
-#if 1
+
 						if (type == AUTHENTICATION_FAILED)
 						{
 							this->ike_sa->set_failure(this->ike_sa,
@@ -949,7 +949,6 @@ METHOD(task_t, process_i, status_t,
 							this->ike_sa->set_failure(this->ike_sa,
 										IKE_FAILURE_NOTIFY_FAILURE);
 						}
-#endif
 
 						return FAILED;
 					}

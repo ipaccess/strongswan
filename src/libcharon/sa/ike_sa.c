@@ -72,7 +72,7 @@ ENUM(ike_sa_state_names, IKE_CREATED, IKE_DESTROYING,
 	"DELETING",
 	"DESTROYING",
 );
-#if 1
+
 ENUM(ike_failure_names, IKE_FAILURE_NONE, IKE_FAILURE_PEER_AUTH,
 	"NONE",
 	"PEER_CERT_INVALID",
@@ -90,8 +90,6 @@ ENUM(ike_failure_names, IKE_FAILURE_NONE, IKE_FAILURE_PEER_AUTH,
 	"ID_PAYLOAD_MISSING",
 	"PEER_AUTH"
 );
-#endif
-
 
 typedef struct private_ike_sa_t private_ike_sa_t;
 typedef struct attribute_entry_t attribute_entry_t;
@@ -769,7 +767,7 @@ METHOD(ike_sa_t, set_state, void,
 		}
 	}
 }
-#if 1
+
 /**
  * Implementation of ike_sa_t.set_failure
  */
@@ -789,8 +787,6 @@ METHOD(ike_sa_t, get_failure, void,
 	return this->failure;
 }
 
-#endif
-
 METHOD(ike_sa_t, reset, void,
 	private_ike_sa_t *this)
 {
@@ -801,9 +797,8 @@ METHOD(ike_sa_t, reset, void,
 	}
 
 	set_state(this, IKE_CREATED);
-#if 1
+
 	set_failure(this, IKE_FAILURE_NONE);
-#endif
 
 	flush_auth_cfgs(this);
 
@@ -2517,10 +2512,10 @@ ike_sa_t * ike_sa_create(ike_sa_id_t *ike_sa_id, bool initiator,
 			.add_configuration_attribute = _add_configuration_attribute,
 			.create_attribute_enumerator = _create_attribute_enumerator,
 			.set_kmaddress = _set_kmaddress,
-#if 1
+
                         .set_failure = _set_failure,
                         .get_failure = _get_failure,
-#endif
+
 			.create_task_enumerator = _create_task_enumerator,
 			.flush_queue = _flush_queue,
 			.queue_task = _queue_task,

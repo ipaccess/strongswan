@@ -28,9 +28,7 @@ typedef enum ike_extension_t ike_extension_t;
 typedef enum ike_condition_t ike_condition_t;
 typedef enum ike_sa_state_t ike_sa_state_t;
 typedef enum statistic_t statistic_t;
-#if 1
 typedef enum ike_failure_t ike_failure_t;
-#endif
 typedef struct ike_sa_t ike_sa_t;
 
 #include <library.h>

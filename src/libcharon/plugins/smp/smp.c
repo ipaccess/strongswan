@@ -32,8 +32,6 @@
 #include <threading/thread.h>
 #include <processing/jobs/callback_job.h>
 
-#if 1
-
 /**
  * maximum number of smp messages we expect to receive in
  * a single read from the socket (never actually seen more
@@ -52,9 +50,6 @@
  * a XFRM_MSG_EXPIRE for that sa, so keep this timer short.
  */
 #define FETCH_RESPONSE_TIMEOUT  5 
-
-
-#endif
 
 typedef struct private_smp_t private_smp_t;
 
@@ -79,7 +74,6 @@ struct private_smp_t {
 
 };
 
-#if 1
 /**
  * Create a listener instance.
  */
@@ -121,7 +115,6 @@ static char *fetch_uri(smp_client *client, char *uri);
 static void process_buffer(int fd, char *buffer, size_t len);
 static void close_client(smp_client *client);
 
-#endif
 ENUM(ike_sa_state_lower_names, IKE_CREATED, IKE_DESTROYING,
 	"created",
 	"connecting",
@@ -324,7 +317,6 @@ static status_t fetch(private_smp_fetcher_t *this, char *uri, chunk_t *result)
 {
 	status_t status = FAILED;
 	*result = chunk_empty;
-#if 1
 	smp_client *client;
 	char *filepath = NULL;
 	
@@ -392,7 +384,6 @@ smp_fetcher_t *smp_fetcher_create()
 	return &this->public;
 }
 
-#endif
 /**
  * write a bool into element
  */
@@ -517,10 +508,8 @@ static void write_child(xmlTextWriterPtr writer, child_sa_t *child)
 	xmlTextWriterStartElement(writer, "childsa");
 	xmlTextWriterWriteFormatElement(writer, "reqid", "%d",
 									child->get_reqid(child));
-#if 0
 	xmlTextWriterWriteFormatElement(writer, "status", "%N",
 					child_sa_state_names, child->get_state(child));
-#endif
 
 	xmlTextWriterWriteFormatElement(writer, "childconfig", "%s",
 									config->get_name(config));
@@ -942,7 +931,7 @@ static void request_control(xmlTextReaderPtr reader, xmlTextWriterPtr writer)
 	/* </control> */
 	xmlTextWriterEndElement(writer);
 }
-#if 1
+
 /**
  * put a request at the end of the list of requests to be processed
  */
@@ -962,7 +951,7 @@ static int queue_request(char* buffer, xmlTextReaderPtr reader, char *id, int fd
 
 	return 0;
 }
-#endif
+
 /**
  * process a request message
  */
@@ -1006,7 +995,7 @@ static void request(xmlTextReaderPtr reader, char *id, int fd)
 	xmlTextWriterEndDocument(writer);
 	xmlFreeTextWriter(writer);
 }
-#if 1 
+
 /**
  * process a response to a fetch request
  */
@@ -1439,7 +1428,6 @@ static void process_buffer(int fd, char *buffer, size_t len)
 	}
 }
 
-#endif
 /**
  * read from a opened connection and process it
  */
@@ -1607,7 +1595,7 @@ METHOD(plugin_t, destroy, void,
         free(this->listener);
 	free(this);
 }
-#if 1
+
 /**
  * Listener implementation
  */
@@ -1687,7 +1675,7 @@ listener_t *smp_listener_create()
 	return this;
 }
 
-#endif
+
 /*
  * Described in header file
  */
@@ -1750,7 +1738,6 @@ plugin_t *smp_plugin_create()
 		(job_t*)callback_job_create_with_prio((callback_job_cb_t)dispatch, this,
 				NULL, (callback_job_cancel_t)return_false, JOB_PRIO_CRITICAL));
 
-#if 1 
 
 	smp_clients = linked_list_create();
 	
@@ -1763,8 +1750,6 @@ plugin_t *smp_plugin_create()
 
 	this->listener = smp_listener_create();
 	charon->bus->add_listener(charon->bus, this->listener);
-
-#endif
 
 	return &this->public.plugin;
 }
