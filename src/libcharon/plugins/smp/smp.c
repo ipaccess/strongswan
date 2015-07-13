@@ -1274,11 +1274,14 @@ static char *fetch_uri(smp_client *client, char *uri)
 
 static void close_client(smp_client *client)
 {
-	pthread_mutex_lock(&client->readMutex);
-	client->activeReader = 0;
-	pthread_cond_signal(&client->readCond);
-	pthread_mutex_unlock(&client->readMutex);
-	close(client->fd);
+	if (client)
+	{
+		pthread_mutex_lock(&client->readMutex);
+		client->activeReader = 0;
+		pthread_cond_signal(&client->readCond);
+		pthread_mutex_unlock(&client->readMutex);
+		close(client->fd);
+	}
 }
 
 /**
@@ -1491,7 +1494,7 @@ static job_requeue_t process(int *fdp)
 			/* Take ownership of reading and then release the mutex while we block in the read */
 			client->activeReader = 1;
 			pthread_mutex_unlock(&client->readMutex);
-	                thread_cleanup_push((thread_cleanup_t)close_client, (void*)&fd);
+	                thread_cleanup_push((thread_cleanup_t)close_client, (void*)client);
 	                oldstate = thread_cancelability(TRUE);
 	                len = read(fd, buffer, sizeof(buffer));
 			thread_cancelability(oldstate);
