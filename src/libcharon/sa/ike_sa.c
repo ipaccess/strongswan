@@ -781,7 +781,7 @@ METHOD(ike_sa_t, set_failure, void,
 /**
  * Implementation of ike_sa_t.get_failure
  */
-METHOD(ike_sa_t, get_failure, void,
+METHOD(ike_sa_t, get_failure, ike_failure_t,
 	private_ike_sa_t *this )
 {
 	return this->failure;
